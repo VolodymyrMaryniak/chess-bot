@@ -8,5 +8,6 @@ namespace Chess.Core.Models
 		public Coordinate To { get; set; }
 
 		public Castling? Castling { get; set; }
+		public ChessPieceType? CastTo { get; set; }
 	}
 }

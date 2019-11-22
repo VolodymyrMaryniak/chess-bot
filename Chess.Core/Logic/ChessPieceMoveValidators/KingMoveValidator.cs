@@ -11,18 +11,17 @@ namespace Chess.Core.Logic.ChessPieceMoveValidators
 	{
 		public List<GameMove> GetSoftValidKingMoves(Chessboard chessboard, Coordinate fromCoordinate, ChessColor kingColor)
 		{
-			var i = fromCoordinate.Number - 1;
-			var j = fromCoordinate.Letter - 'A';
+			fromCoordinate.ToArrayIndexes(out var i, out var j);
 
 			var softValidMoves = new List<GameMove>();
-			softValidMoves.AddMoveIfCoordinateIsSoftValid(chessboard, fromCoordinate, kingColor, i - 1, j - 1);
-			softValidMoves.AddMoveIfCoordinateIsSoftValid(chessboard, fromCoordinate, kingColor, i - 1, j);
-			softValidMoves.AddMoveIfCoordinateIsSoftValid(chessboard, fromCoordinate, kingColor, i - 1, j + 1);
-			softValidMoves.AddMoveIfCoordinateIsSoftValid(chessboard, fromCoordinate, kingColor, i, j - 1);
-			softValidMoves.AddMoveIfCoordinateIsSoftValid(chessboard, fromCoordinate, kingColor, i, j + 1);
-			softValidMoves.AddMoveIfCoordinateIsSoftValid(chessboard, fromCoordinate, kingColor, i + 1, j - 1);
-			softValidMoves.AddMoveIfCoordinateIsSoftValid(chessboard, fromCoordinate, kingColor, i + 1, j);
-			softValidMoves.AddMoveIfCoordinateIsSoftValid(chessboard, fromCoordinate, kingColor, i + 1, j + 1);
+			softValidMoves.AddIfCoordinateIsValid(chessboard, fromCoordinate, kingColor, i - 1, j - 1);
+			softValidMoves.AddIfCoordinateIsValid(chessboard, fromCoordinate, kingColor, i - 1, j);
+			softValidMoves.AddIfCoordinateIsValid(chessboard, fromCoordinate, kingColor, i - 1, j + 1);
+			softValidMoves.AddIfCoordinateIsValid(chessboard, fromCoordinate, kingColor, i, j - 1);
+			softValidMoves.AddIfCoordinateIsValid(chessboard, fromCoordinate, kingColor, i, j + 1);
+			softValidMoves.AddIfCoordinateIsValid(chessboard, fromCoordinate, kingColor, i + 1, j - 1);
+			softValidMoves.AddIfCoordinateIsValid(chessboard, fromCoordinate, kingColor, i + 1, j);
+			softValidMoves.AddIfCoordinateIsValid(chessboard, fromCoordinate, kingColor, i + 1, j + 1);
 
 			return softValidMoves;
 		}

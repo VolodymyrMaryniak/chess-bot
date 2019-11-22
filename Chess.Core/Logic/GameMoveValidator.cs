@@ -14,6 +14,8 @@ namespace Chess.Core.Logic
 		private readonly QueenMoveValidator _queenMoveValidator;
 		private readonly RookMoveValidator _rookMoveValidator;
 		private readonly BishopMoveValidator _bishopMoveValidator;
+		private readonly KnightMoveValidator _knightMoveValidator;
+		private readonly PawnMoveValidator _pawnMoveValidator;
 
 		public GameMoveValidator()
 		{
@@ -21,32 +23,53 @@ namespace Chess.Core.Logic
 			_queenMoveValidator = new QueenMoveValidator();
 			_rookMoveValidator = new RookMoveValidator();
 			_bishopMoveValidator = new BishopMoveValidator();
+			_knightMoveValidator = new KnightMoveValidator();
+			_pawnMoveValidator = new PawnMoveValidator();
 		}
 
-		public bool IsValid(Chessboard chessboard, GameMove move)
+		public bool IsValid(Chessboard chessboard, GameMove move, GameHistory gameHistory)
 		{
-			var chessPiece = chessboard.GetChessPiece(move.From);
+			var chessPiece = chessboard.GetChessPieceOrDefault(move.From);
 			if (!chessPiece.HasValue)
 				return false;
 
-			if (!IsMoveSoftValid(chessboard, move, chessPiece.Value))
-				return false;
+			var chessBoardCopy = (Chessboard) chessboard.Clone();
+			var gameHistoryCopy = (GameHistory) gameHistory.Clone();
 
-			var kingCoordinate = chessboard.GetCoordinate(new ChessPiece {Owner = chessPiece.Value.Owner, Type = ChessPieceType.King});
-			if (!kingCoordinate.HasValue)
-				return false; // There is no King?
+			gameHistoryCopy.Add(move, chessBoardCopy);
+			chessBoardCopy.Move(move);
 
+			var kingCoordinate = chessBoardCopy.GetCoordinate(new ChessPiece {Owner = chessPiece.Value.Owner, Type = ChessPieceType.King});
 
-			var opponentChessPieceCoordinates = chessboard.ChessPieceCoordinates.Where(x => x.ChessPiece.Owner != chessPiece.Value.Owner);
-			var isKingInDanger = opponentChessPieceCoordinates.Any(x =>
-				IsMoveSoftValid(chessboard, new GameMove {From = x.Coordinate, To = kingCoordinate.Value}, x.ChessPiece));
+			var opponentChessPieceCoordinates = chessBoardCopy.ChessPieceCoordinates.Where(x => x.ChessPiece.Owner != chessPiece.Value.Owner);
+
+			var isKingInDanger = opponentChessPieceCoordinates.Any(chessPieceCoordinate =>
+				GetSoftValidMoves(chessBoardCopy, chessPieceCoordinate, gameHistoryCopy).Any(m => m.To == kingCoordinate));
 
 			return !isKingInDanger;
 		}
 
-		public List<GameMove> GetAvailableMoves(Chessboard chessboard, ChessColor turn, GameMove? previousMove)
+		public List<GameMove> GetAvailableMoves(Chessboard chessboard, ChessColor turn, GameHistory gameHistory)
 		{
-			throw new NotImplementedException();
+			var chessPieceCoordinates = chessboard.ChessPieceCoordinates.Where(x => x.ChessPiece.Owner == turn).ToList();
+
+			var softValidMoves = chessPieceCoordinates
+				.SelectMany(chessPieceCoordinate => GetSoftValidMoves(chessboard, chessPieceCoordinate, gameHistory))
+				.ToList();
+
+			var pawnForwardMoves = chessPieceCoordinates
+				.Where(x => x.ChessPiece.Type == ChessPieceType.Pawn)
+				.SelectMany(x => _pawnMoveValidator.GetPawnForwardMoves(chessboard, x.Coordinate, turn))
+				.ToList();
+			softValidMoves.AddRange(pawnForwardMoves);
+
+			var availableMoves = softValidMoves
+				.Where(x => IsValid(chessboard, x, gameHistory))
+				.ToList();
+
+			availableMoves.AddRange(new List<GameMove>()); // TODO: Add possible castling
+
+			return availableMoves;
 		}
 
 		public bool IsGameFinished(Chessboard chessboard, GameHistory gameHistory)
@@ -59,53 +82,28 @@ namespace Chess.Core.Logic
 			throw new NotImplementedException();
 		}
 
-		private bool IsMoveSoftValid(Chessboard chessboard, GameMove move, ChessPiece chessPiece)
+		private List<GameMove> GetSoftValidMoves(Chessboard chessboard, ChessPieceCoordinate chessPieceCoordinate, GameHistory history)
 		{
-			switch (chessPiece.Type)
-			{
-				case ChessPieceType.King:
-					return _kingMoveValidator.IsKingMoveSoftValid(chessboard, move, chessPiece.Owner);
-				case ChessPieceType.Queen:
-					break;
-				case ChessPieceType.Rook:
-					break;
-				case ChessPieceType.Bishop:
-					break;
-				case ChessPieceType.Knight:
-					break;
-				case ChessPieceType.Pawn:
-					break;
-				default:
-					throw new ArgumentOutOfRangeException(nameof(chessPiece.Type), chessPiece.Type, null);
-			}
-
-			throw new NotImplementedException();
-		}
-
-		private List<GameMove> GetSoftValidMoves(Chessboard chessboard, ChessPieceCoordinate chessPieceCoordinate)
-		{
-			var coordinate = chessPieceCoordinate.Coordinate;
+			var fromCoordinate = chessPieceCoordinate.Coordinate;
 			var chessPiece = chessPieceCoordinate.ChessPiece;
 
 			switch (chessPiece.Type)
 			{
 				case ChessPieceType.King:
-					return _kingMoveValidator.GetSoftValidKingMoves(chessboard, coordinate, chessPiece.Owner);
+					return _kingMoveValidator.GetSoftValidKingMoves(chessboard, fromCoordinate, chessPiece.Owner);
 				case ChessPieceType.Queen:
-					return _queenMoveValidator.GetSoftValidQueenMoves(chessboard, coordinate, chessPiece.Owner);
+					return _queenMoveValidator.GetSoftValidQueenMoves(chessboard, fromCoordinate, chessPiece.Owner);
 				case ChessPieceType.Rook:
-					return _rookMoveValidator.GetSoftValidRookMoves(chessboard, coordinate, chessPiece.Owner);
+					return _rookMoveValidator.GetSoftValidRookMoves(chessboard, fromCoordinate, chessPiece.Owner);
 				case ChessPieceType.Bishop:
-					return _bishopMoveValidator.GetSoftValidBishopMoves(chessboard, coordinate, chessPiece.Owner);
+					return _bishopMoveValidator.GetSoftValidBishopMoves(chessboard, fromCoordinate, chessPiece.Owner);
 				case ChessPieceType.Knight:
-					break;
+					return _knightMoveValidator.GetSoftValidKnightMoves(chessboard, fromCoordinate, chessPiece.Owner);
 				case ChessPieceType.Pawn:
-					break;
+					return _pawnMoveValidator.GetPawnKillMoves(chessboard, fromCoordinate, chessPiece.Owner);
 				default:
 					throw new ArgumentOutOfRangeException(nameof(chessPiece.Type), chessPiece.Type, null);
 			}
-
-			throw new NotImplementedException();
 		}
 	}
 }

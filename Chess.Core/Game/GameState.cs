@@ -63,6 +63,8 @@ namespace Chess.Core.Game
 			if (GameStatus == GameStatus.Finished)
 				throw new Exception("The game is finished.");
 
+			History.Add(move, Chessboard);
+
 			if (move.Castling.HasValue)
 			{
 				DoCastling(move);
@@ -71,8 +73,6 @@ namespace Chess.Core.Game
 			{
 				Chessboard.Move(move);
 			}
-
-			History.Add(move);
 
 			if (_gameMoveValidator.IsGameFinished(Chessboard, History))
 			{
@@ -90,12 +90,12 @@ namespace Chess.Core.Game
 
 		public List<GameMove> GetAvailableMoves()
 		{
-			var possibleMoves = _gameMoveValidator.GetAvailableMoves(Chessboard, Turn, History.LastMove);
+			var possibleMoves = _gameMoveValidator.GetAvailableMoves(Chessboard, Turn, History);
 
 			if (!possibleMoves.Any())
 				throw new Exception("No moves available!");
 
-			return _gameMoveValidator.GetAvailableMoves(Chessboard, Turn, History.LastMove);
+			return possibleMoves;
 		}
 
 		private void DoCastling(GameMove move)
@@ -105,10 +105,8 @@ namespace Chess.Core.Game
 
 			var castling = move.Castling.Value;
 			var king = Chessboard.GetChessPiece(move.From);
-			if (!king.HasValue)
-				throw new Exception("There is no King in position for castling.");
 
-			var lineNumber = king.Value.Owner == ChessColor.White ? 1 : 8;
+			var lineNumber = king.Owner == ChessColor.White ? 1 : 8;
 
 			if (castling == Castling.Short)
 			{

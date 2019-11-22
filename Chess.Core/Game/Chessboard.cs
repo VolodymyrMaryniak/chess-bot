@@ -17,13 +17,31 @@ namespace Chess.Core.Game
 			SetChessPiecesToTheirOriginalPositions();
 		}
 
-		public ChessPiece? GetChessPiece(Coordinate coordinate)
+		public ChessPiece GetChessPiece(Coordinate coordinate)
+		{
+			var chessPiece = GetChessPieceOrDefault(coordinate);
+			if (chessPiece == null)
+				throw new Exception("Chess piece not found.");
+
+			return chessPiece.Value;
+		}
+
+		public ChessPiece? GetChessPieceOrDefault(Coordinate coordinate)
 		{
 			ValidateCoordinate(coordinate);
 			return Get(coordinate);
 		}
 
-		public Coordinate? GetCoordinate(ChessPiece chessPiece)
+		public Coordinate GetCoordinate(ChessPiece chessPiece)
+		{
+			var coordinate = GetCoordinateOrDefault(chessPiece);
+			if (coordinate == null)
+				throw new Exception("Chess piece not found.");
+
+			return coordinate.Value;
+		}
+
+		public Coordinate? GetCoordinateOrDefault(ChessPiece chessPiece)
 		{
 			for (var i = 0; i < 8; i++)
 			for (var j = 0; j < 8; j++)
