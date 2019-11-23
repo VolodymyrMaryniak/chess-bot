@@ -40,11 +40,7 @@ namespace Chess.Core.Logic
 			chessBoardCopy.Move(move);
 
 			var kingCoordinate = chessBoardCopy.GetCoordinate(new ChessPiece {Owner = chessPiece.Value.Owner, Type = ChessPieceType.King});
-
-			var opponentChessPieceCoordinates = chessBoardCopy.ChessPieceCoordinates.Where(x => x.ChessPiece.Owner != chessPiece.Value.Owner);
-
-			var isKingInDanger = opponentChessPieceCoordinates.Any(chessPieceCoordinate =>
-				GetSoftValidMoves(chessBoardCopy, chessPieceCoordinate, gameHistoryCopy).Any(m => m.To == kingCoordinate));
+			var isKingInDanger = IsCoordinateInDanger(chessBoardCopy, chessPiece.Value.Owner, gameHistoryCopy, kingCoordinate);
 
 			return !isKingInDanger;
 		}
@@ -67,8 +63,8 @@ namespace Chess.Core.Logic
 				.Where(x => IsValid(chessboard, x, gameHistory))
 				.ToList();
 
-			availableMoves.AddRange(new List<GameMove>()); // TODO: Add possible castling
-
+			availableMoves.AddRange(GetPossibleCastlingMoves(chessboard, turn, gameHistory));
+			
 			return availableMoves;
 		}
 
@@ -104,6 +100,45 @@ namespace Chess.Core.Logic
 				default:
 					throw new ArgumentOutOfRangeException(nameof(chessPiece.Type), chessPiece.Type, null);
 			}
+		}
+
+		private bool IsCoordinateInDanger(Chessboard chessboard, ChessColor turn, GameHistory gameHistory, Coordinate coordinate)
+		{
+			var opponentChessPieceCoordinates = chessboard.ChessPieceCoordinates.Where(x => x.ChessPiece.Owner != turn);
+
+			var isCoordinateInDanger = opponentChessPieceCoordinates.Any(chessPieceCoordinate =>
+				GetSoftValidMoves(chessboard, chessPieceCoordinate, gameHistory).Any(m => m.To == coordinate));
+
+			return isCoordinateInDanger;
+		}
+
+		private List<GameMove> GetPossibleCastlingMoves(Chessboard chessboard, ChessColor turn, GameHistory gameHistory)
+		{
+			var possibleCastlingMoves = new List<GameMove>();
+
+			bool IsAnyCoordinateInDanger(int number, params char[] letters)
+			{
+				return letters.Any(x => IsCoordinateInDanger(chessboard, turn, gameHistory, new Coordinate(x, number)));
+			}
+
+			if (turn == ChessColor.White)
+			{
+				if (gameHistory.WhiteLongCastlingPossible && !IsAnyCoordinateInDanger(1, 'A', 'B', 'C', 'D', 'E'))
+					possibleCastlingMoves.Add(new GameMove {Castling = Castling.Long});
+
+				if (gameHistory.WhiteShortCastlingPossible && !IsAnyCoordinateInDanger(1, 'E', 'F', 'G', 'H'))
+					possibleCastlingMoves.Add(new GameMove {Castling = Castling.Short});
+			}
+			else
+			{
+				if (gameHistory.BlackLongCastlingPossible && !IsAnyCoordinateInDanger(8, 'A', 'B', 'C', 'D', 'E'))
+					possibleCastlingMoves.Add(new GameMove {Castling = Castling.Long});
+
+				if (gameHistory.BlackShortCastlingPossible && !IsAnyCoordinateInDanger(8, 'E', 'F', 'G', 'H'))
+					possibleCastlingMoves.Add(new GameMove {Castling = Castling.Short});
+			}
+
+			return possibleCastlingMoves;
 		}
 	}
 }

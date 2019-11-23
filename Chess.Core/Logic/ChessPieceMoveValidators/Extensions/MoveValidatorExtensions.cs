@@ -22,7 +22,6 @@ namespace Chess.Core.Logic.ChessPieceMoveValidators.Extensions
 
 			list.Add(new GameMove { From = @from, To = Chessboard.GetCoordinate(i, j) });
 			return true;
-
 		}
 
 		public static bool AddIfCoordinateIsEmpty(this List<GameMove> list, Chessboard chessboard, Coordinate from, int i, int j)
