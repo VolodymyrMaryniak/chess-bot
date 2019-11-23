@@ -29,13 +29,12 @@ namespace Chess.Core.Game
 			};
 		}
 
-
 		public object Clone()
 		{
 			return new GameState
 			{
-				Chessboard = (Chessboard)Chessboard.Clone(),
-				History = (GameHistory)History.Clone(),
+				Chessboard = (Chessboard) Chessboard.Clone(),
+				History = (GameHistory) History.Clone(),
 				Turn = Turn,
 				GameStatus = GameStatus,
 				_gameResult = _gameResult
@@ -63,7 +62,7 @@ namespace Chess.Core.Game
 			if (GameStatus == GameStatus.Finished)
 				throw new Exception("The game is finished.");
 
-			History.Add(move, Chessboard);
+			History.Add(move, Turn, Chessboard);
 
 			if (move.Castling.HasValue)
 			{
@@ -74,10 +73,10 @@ namespace Chess.Core.Game
 				Chessboard.Move(move);
 			}
 
-			if (_gameMoveValidator.IsGameFinished(Chessboard, History))
+			if (_gameMoveValidator.IsGameFinished(Chessboard, History, Turn))
 			{
 				GameStatus = GameStatus.Finished;
-				_gameResult = _gameMoveValidator.GetGameResult(Chessboard, History);
+				_gameResult = _gameMoveValidator.GetGameResult(Chessboard, History, Turn);
 			}
 			else
 			{

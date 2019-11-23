@@ -7,7 +7,7 @@ namespace Chess.Core.Game
 {
 	public class Chessboard : ICloneable
 	{
-		public ChessPiece?[,] Board { get; private set; }
+		public ChessPiece?[,] Board { get; }
 		public List<ChessPiece> ChessPieces => GetChessPieces();
 		public List<ChessPieceCoordinate> ChessPieceCoordinates => GetChessPieceCoordinates();
 
@@ -15,6 +15,11 @@ namespace Chess.Core.Game
 		{
 			Board = new ChessPiece?[8, 8];
 			SetChessPiecesToTheirOriginalPositions();
+		}
+
+		private Chessboard(ChessPiece?[,] chessPiecesArray)
+		{
+			Board = chessPiecesArray;
 		}
 
 		public ChessPiece GetChessPiece(Coordinate coordinate)
@@ -70,11 +75,19 @@ namespace Chess.Core.Game
 
 		public object Clone()
 		{
-			return new Chessboard
-			{
-				Board = (ChessPiece?[,]) Board.Clone()
-			};
+			return new Chessboard((ChessPiece?[,]) Board.Clone());
 		}
+
+		public override bool Equals(object obj)
+		{
+			return obj is Chessboard chessboard && Board.Equals(chessboard.Board);
+		}
+
+		public override int GetHashCode()
+		{
+			return Board.GetHashCode();
+		}
+
 		public static bool IsCoordinateValid(Coordinate coordinate)
 		{
 			return coordinate.Number >= 1 &&
@@ -92,6 +105,8 @@ namespace Chess.Core.Game
 		{
 			return new Coordinate((char)(j + 'A'), i + 1);
 		}
+
+		#region private methods
 
 		private void Set(ChessPiece? chessPiece, Coordinate toCoordinate)
 		{
@@ -182,5 +197,7 @@ namespace Chess.Core.Game
 			if (coordinate.Letter < 'A' || coordinate.Letter > 'H')
 				throw new ArgumentOutOfRangeException(nameof(coordinate.Letter));
 		}
+
+		#endregion
 	}
 }

@@ -150,11 +150,7 @@ namespace Chess.Core.Logic.ChessPieceMoveValidators.Extensions
 			}
 		}
 
-		private static bool IsPawnKilling(Chessboard chessboard,
-			GameMove? previousMove,
-			ChessColor chessPieceColor,
-			int i,
-			int j)
+		private static bool IsPawnKilling(Chessboard chessboard, GameMove? previousMove, ChessColor chessPieceColor, int i, int j)
 		{
 			var chessPieceOnPotentialVictimPosition = chessboard.Board[i, j];
 			if (chessPieceOnPotentialVictimPosition.HasValue)
@@ -162,7 +158,7 @@ namespace Chess.Core.Logic.ChessPieceMoveValidators.Extensions
 
 			// "En Passant" checking
 
-			if (!previousMove.HasValue || 
+			if (!previousMove.HasValue ||
 			    chessPieceColor == ChessColor.White && i != 5 ||
 			    chessPieceColor == ChessColor.Black && i != 2)
 				return false;

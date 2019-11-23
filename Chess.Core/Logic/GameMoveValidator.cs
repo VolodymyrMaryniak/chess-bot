@@ -1,4 +1,5 @@
 ﻿using Chess.Core.Enums;
+using Chess.Core.Enums.Extensions;
 using Chess.Core.Game;
 using Chess.Core.Logic.ChessPieceMoveValidators;
 using Chess.Core.Models;
@@ -27,24 +28,6 @@ namespace Chess.Core.Logic
 			_pawnMoveValidator = new PawnMoveValidator();
 		}
 
-		public bool IsValid(Chessboard chessboard, GameMove move, GameHistory gameHistory)
-		{
-			var chessPiece = chessboard.GetChessPieceOrDefault(move.From);
-			if (!chessPiece.HasValue)
-				return false;
-
-			var chessBoardCopy = (Chessboard) chessboard.Clone();
-			var gameHistoryCopy = (GameHistory) gameHistory.Clone();
-
-			gameHistoryCopy.Add(move, chessBoardCopy);
-			chessBoardCopy.Move(move);
-
-			var kingCoordinate = chessBoardCopy.GetCoordinate(new ChessPiece {Owner = chessPiece.Value.Owner, Type = ChessPieceType.King});
-			var isKingInDanger = IsCoordinateInDanger(chessBoardCopy, chessPiece.Value.Owner, gameHistoryCopy, kingCoordinate);
-
-			return !isKingInDanger;
-		}
-
 		public List<GameMove> GetAvailableMoves(Chessboard chessboard, ChessColor turn, GameHistory gameHistory)
 		{
 			var chessPieceCoordinates = chessboard.ChessPieceCoordinates.Where(x => x.ChessPiece.Owner == turn).ToList();
@@ -68,14 +51,39 @@ namespace Chess.Core.Logic
 			return availableMoves;
 		}
 
-		public bool IsGameFinished(Chessboard chessboard, GameHistory gameHistory)
+		public bool IsGameFinished(Chessboard chessboard, GameHistory gameHistory, ChessColor lastTurnBy)
 		{
-			throw new NotImplementedException();
+			return !GetAvailableMoves(chessboard, lastTurnBy.GetOppositeChessColor(), gameHistory).Any() ||
+			       gameHistory.IsPositionRepeatedThreeTimes;
 		}
 
-		public ChessGameResult? GetGameResult(Chessboard chessboard, GameHistory gameHistory)
+		public ChessGameResult GetGameResult(Chessboard chessboard, GameHistory gameHistory, ChessColor lastTurnBy)
 		{
-			throw new NotImplementedException();
+			if (!IsGameFinished(chessboard, gameHistory, lastTurnBy))
+				throw new InvalidOperationException("The game is not finished yet.");
+
+			if (gameHistory.IsPositionRepeatedThreeTimes)
+				return ChessGameResult.Draw;
+
+			return lastTurnBy == ChessColor.White ? ChessGameResult.WhiteWon : ChessGameResult.BlackWon;
+		}
+
+		private bool IsValid(Chessboard chessboard, GameMove move, GameHistory gameHistory)
+		{
+			var chessPiece = chessboard.GetChessPieceOrDefault(move.From);
+			if (!chessPiece.HasValue)
+				return false;
+
+			var chessBoardCopy = (Chessboard)chessboard.Clone();
+			var gameHistoryCopy = (GameHistory)gameHistory.Clone();
+
+			gameHistoryCopy.Add(move, chessPiece.Value.Owner, chessBoardCopy);
+			chessBoardCopy.Move(move);
+
+			var kingCoordinate = chessBoardCopy.GetCoordinate(new ChessPiece { Owner = chessPiece.Value.Owner, Type = ChessPieceType.King });
+			var isKingInDanger = IsCoordinateInDanger(chessBoardCopy, chessPiece.Value.Owner, gameHistoryCopy, kingCoordinate);
+
+			return !isKingInDanger;
 		}
 
 		private List<GameMove> GetSoftValidMoves(Chessboard chessboard, ChessPieceCoordinate chessPieceCoordinate, GameHistory history)
