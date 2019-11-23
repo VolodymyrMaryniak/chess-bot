@@ -40,6 +40,14 @@ namespace Chess.Core.Game
 			CheckCastlingPossibility(chessPiece, move);
 		}
 
+		public GameMove? GetLastMove()
+		{
+			if (WhiteMoves.Count == BlackMoves.Count && WhiteMoves.Any())
+				return BlackMoves.Last();
+
+			return WhiteMoves.LastOrDefault();
+		}
+
 		public object Clone()
 		{
 			return new GameHistory

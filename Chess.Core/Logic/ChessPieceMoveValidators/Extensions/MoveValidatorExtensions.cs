@@ -44,8 +44,9 @@ namespace Chess.Core.Logic.ChessPieceMoveValidators.Extensions
 		}
 
 		public static void AddIfPawnKills(
-			this List<GameMove> list, 
-			Chessboard chessboard, 
+			this List<GameMove> list,
+			Chessboard chessboard,
+			GameMove? previousMove,
 			Coordinate from,
 			ChessColor chessPieceColor,
 			MoveDirection direction)
@@ -56,13 +57,12 @@ namespace Chess.Core.Logic.ChessPieceMoveValidators.Extensions
 			if (!Chessboard.IsCoordinateValid(i, j))
 				return;
 
-			var victim = chessboard.Board[i, j];
-
-			if (!victim.HasValue || victim.Value.Owner == chessPieceColor)
+			if (!IsPawnKilling(chessboard, previousMove, chessPieceColor, i, j))
 				return;
 
 			var toCoordinate = Chessboard.GetCoordinate(i, j);
-			if (chessPieceColor == ChessColor.White && toCoordinate.Number == 8 || chessPieceColor == ChessColor.White && toCoordinate.Number == 1)
+			if (chessPieceColor == ChessColor.White && toCoordinate.Number == 8 ||
+			    chessPieceColor == ChessColor.White && toCoordinate.Number == 1)
 				list.AddMovesWithAllCastToOptions(new GameMove {From = from, To = toCoordinate});
 			else
 				list.Add(new GameMove {From = from, To = toCoordinate});
@@ -149,6 +149,38 @@ namespace Chess.Core.Logic.ChessPieceMoveValidators.Extensions
 				default:
 					throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
 			}
+		}
+
+		private static bool IsPawnKilling(Chessboard chessboard,
+			GameMove? previousMove,
+			ChessColor chessPieceColor,
+			int i,
+			int j)
+		{
+			var chessPieceOnPotentialVictimPosition = chessboard.Board[i, j];
+			if (chessPieceOnPotentialVictimPosition.HasValue)
+				return chessPieceOnPotentialVictimPosition.Value.Owner != chessPieceColor;
+
+			// "En Passant" checking
+
+			if (!previousMove.HasValue || 
+			    chessPieceColor == ChessColor.White && i != 5 ||
+			    chessPieceColor == ChessColor.Black && i != 2)
+				return false;
+
+			var previousMoveChessPiece = chessboard.GetChessPieceOrDefault(previousMove.Value.To);
+			if (!previousMoveChessPiece.HasValue || previousMoveChessPiece.Value.Type != ChessPieceType.Pawn)
+				return false;
+
+			previousMove.Value.From.ToArrayIndexes(out var prevMoveFromI, out var prevMoveFromJ);
+			previousMove.Value.To.ToArrayIndexes(out var prevMoveToI, out _);
+			var prevMoveOwner = previousMoveChessPiece.Value.Owner;
+
+			if (prevMoveFromJ != j)
+				return false;
+
+			return prevMoveOwner == ChessColor.White && prevMoveFromI == 1 && prevMoveToI == 3 ||
+			       prevMoveOwner == ChessColor.Black && prevMoveFromI == 6 && prevMoveToI == 4;
 		}
 	}
 }

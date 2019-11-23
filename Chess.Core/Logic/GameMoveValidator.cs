@@ -100,7 +100,7 @@ namespace Chess.Core.Logic
 				case ChessPieceType.Knight:
 					return _knightMoveValidator.GetSoftValidKnightMoves(chessboard, fromCoordinate, chessPiece.Owner);
 				case ChessPieceType.Pawn:
-					return _pawnMoveValidator.GetPawnKillMoves(chessboard, fromCoordinate, chessPiece.Owner);
+					return _pawnMoveValidator.GetPawnKillMoves(chessboard, fromCoordinate, chessPiece.Owner, history.GetLastMove());
 				default:
 					throw new ArgumentOutOfRangeException(nameof(chessPiece.Type), chessPiece.Type, null);
 			}

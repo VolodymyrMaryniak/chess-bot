@@ -9,19 +9,19 @@ namespace Chess.Core.Logic.ChessPieceMoveValidators
 {
 	internal class PawnMoveValidator
 	{
-		public List<GameMove> GetPawnKillMoves(Chessboard chessboard, Coordinate fromCoordinate, ChessColor pawnColor)
+		public List<GameMove> GetPawnKillMoves(Chessboard chessboard, Coordinate fromCoordinate, ChessColor pawnColor, GameMove? previousMove)
 		{
 			var pawnKillMoves = new List<GameMove>();
 
 			if (pawnColor == ChessColor.White)
 			{
-				pawnKillMoves.AddIfPawnKills(chessboard, fromCoordinate, pawnColor, MoveDirection.UpwardsLeft);
-				pawnKillMoves.AddIfPawnKills(chessboard, fromCoordinate, pawnColor, MoveDirection.UpwardsRight);
+				pawnKillMoves.AddIfPawnKills(chessboard, previousMove, fromCoordinate, pawnColor, MoveDirection.UpwardsLeft);
+				pawnKillMoves.AddIfPawnKills(chessboard, previousMove, fromCoordinate, pawnColor, MoveDirection.UpwardsRight);
 			}
 			else
 			{
-				pawnKillMoves.AddIfPawnKills(chessboard, fromCoordinate, pawnColor, MoveDirection.DownRight);
-				pawnKillMoves.AddIfPawnKills(chessboard, fromCoordinate, pawnColor, MoveDirection.DownLeft);
+				pawnKillMoves.AddIfPawnKills(chessboard, previousMove, fromCoordinate, pawnColor, MoveDirection.DownRight);
+				pawnKillMoves.AddIfPawnKills(chessboard, previousMove, fromCoordinate, pawnColor, MoveDirection.DownLeft);
 			}
 
 			return pawnKillMoves;
