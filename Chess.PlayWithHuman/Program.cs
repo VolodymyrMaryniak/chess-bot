@@ -13,7 +13,7 @@ namespace Chess.PlayWithHuman
 		{
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
-			Application.Run(new PlayWithHumanUI());
+			Application.Run(new PlayWithHumanView());
 		}
 	}
 }

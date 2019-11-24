@@ -13,38 +13,36 @@ namespace Chess.Engine.Game
 		private readonly GameMoveValidator _gameMoveValidator;
 		private ChessGameResult? _gameResult;
 
-		private GameState()
+		private GameState(Chessboard chessboard, GameStatus gameStatus, GameHistory history, ChessColor turn)
 		{
+			Chessboard = chessboard;
+			GameStatus = gameStatus;
+			History = history;
+			Turn = turn;
+
 			_gameMoveValidator = new GameMoveValidator();
+
+			CalculatePossibleGameMoves();
 		}
 
 		public static GameState GetNewGameState()
 		{
-			return new GameState
-			{
-				Chessboard = new Chessboard(),
-				GameStatus = GameStatus.NotStarted,
-				History = new GameHistory(),
-				Turn = ChessColor.White
-			};
+			return new GameState(new Chessboard(), GameStatus.NotStarted, new GameHistory(), ChessColor.White);
 		}
 
 		public object Clone()
 		{
-			return new GameState
-			{
-				Chessboard = (Chessboard) Chessboard.Clone(),
-				History = (GameHistory) History.Clone(),
-				Turn = Turn,
-				GameStatus = GameStatus,
-				_gameResult = _gameResult
-			};
+			var gameState = new GameState((Chessboard) Chessboard.Clone(), GameStatus, (GameHistory) History.Clone(), Turn);
+			gameState._gameResult = _gameResult;
+
+			return gameState;
 		}
 
-		public Chessboard Chessboard { get; private set; }
-		public GameHistory History { get; private set; }
+		public Chessboard Chessboard { get; }
+		public GameHistory History { get; }
 		public ChessColor Turn { get; private set; }
 		public GameStatus GameStatus { get; private set; }
+		public List<GameMove> PossibleGameMoves { get; private set; }
 
 		public ChessGameResult GetGameResult()
 		{
@@ -70,7 +68,16 @@ namespace Chess.Engine.Game
 			}
 			else
 			{
+				var chessPiece = Chessboard.GetChessPiece(move.From);
+				if (chessPiece.Type == ChessPieceType.Pawn && move.From.Letter != move.To.Letter)
+				{
+					var victim = Chessboard.GetChessPieceOrDefault(move.To);
+					if (!victim.HasValue)
+						Chessboard.Set(null, new Coordinate(move.To.Letter, chessPiece.Owner == ChessColor.White ? 5 : 4));
+				}
 				Chessboard.Move(move);
+				if (move.CastTo.HasValue)
+					Chessboard.Set(new ChessPiece {Type = move.CastTo.Value, Owner = Turn}, move.To);
 			}
 
 			if (_gameMoveValidator.IsGameFinished(Chessboard, History, Turn))
@@ -85,6 +92,8 @@ namespace Chess.Engine.Game
 
 				Turn = Turn.GetOppositeChessColor();
 			}
+
+			CalculatePossibleGameMoves();
 		}
 
 		public List<GameMove> GetAvailableMoves()
@@ -117,6 +126,11 @@ namespace Chess.Engine.Game
 				Chessboard.Move(new GameMove { From = new Coordinate('E', lineNumber), To = new Coordinate('C', lineNumber) });
 				Chessboard.Move(new GameMove { From = new Coordinate('A', lineNumber), To = new Coordinate('D', lineNumber) });
 			}
+		}
+
+		private void CalculatePossibleGameMoves()
+		{
+			PossibleGameMoves = _gameMoveValidator.GetAvailableMoves(Chessboard, Turn, History);
 		}
 	}
 }

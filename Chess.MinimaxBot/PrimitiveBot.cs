@@ -17,7 +17,7 @@ namespace Chess.MinimaxBot
 			_botLevel = botLevel;
 		}
 
-		public GameMove GetTheBestMove(GameState gameState, ChessColor botColor)
+		public GameMove GetTheBestMove(GameState gameState)
 		{
 			var availableMovesRatings = gameState.GetAvailableMoves()
 				.Select(move =>
@@ -27,19 +27,19 @@ namespace Chess.MinimaxBot
 
 					return new
 					{
-						Rating = GetTheBestMoveRating(gameStateClone, botColor.GetOppositeChessColor(), _botLevel - 1),
+						Rating = GetTheBestMoveRating(gameStateClone, gameState.Turn.GetOppositeChessColor(), _botLevel - 1),
 						Move = move
 					};
-				});
+				}).ToList();
 
-			switch (botColor)
+			switch (gameState.Turn)
 			{
 				case ChessColor.White:
 					return availableMovesRatings.OrderByDescending(x => x.Rating).First().Move;
 				case ChessColor.Black:
 					return availableMovesRatings.OrderBy(x => x.Rating).First().Move;
 				default:
-					throw new ArgumentOutOfRangeException(nameof(botColor));
+					throw new ArgumentOutOfRangeException(nameof(gameState.Turn));
 			}
 		}
 

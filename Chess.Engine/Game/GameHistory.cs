@@ -25,6 +25,7 @@ namespace Chess.Engine.Game
 			PositionsRepeatedTimes = new Dictionary<int, int>();
 			WhiteMoves = new List<GameMove>();
 			BlackMoves = new List<GameMove>();
+			BlackShortCastlingPossible = BlackLongCastlingPossible = WhiteShortCastlingPossible = WhiteLongCastlingPossible = true;
 		}
 
 		/// <summary>
@@ -44,7 +45,7 @@ namespace Chess.Engine.Game
 
 			CheckCastlingPossibility(chessPiece, move);
 
-			var cacheCode = chessboard.Board.GetHashCode();
+			var cacheCode = chessboard.GetHashCode();
 			if (PositionsRepeatedTimes.ContainsKey(cacheCode))
 				PositionsRepeatedTimes[cacheCode]++;
 			else
@@ -65,7 +66,11 @@ namespace Chess.Engine.Game
 			{
 				WhiteMoves = WhiteMoves.ToList(),
 				BlackMoves = BlackMoves.ToList(),
-				PositionsRepeatedTimes = PositionsRepeatedTimes.CloneDictionary()
+				PositionsRepeatedTimes = PositionsRepeatedTimes.CloneDictionary(),
+				WhiteShortCastlingPossible = WhiteShortCastlingPossible,
+				WhiteLongCastlingPossible = WhiteLongCastlingPossible,
+				BlackShortCastlingPossible = BlackShortCastlingPossible,
+				BlackLongCastlingPossible = BlackLongCastlingPossible
 			};
 		}
 

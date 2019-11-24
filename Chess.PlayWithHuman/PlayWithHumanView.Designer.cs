@@ -1,6 +1,6 @@
 ﻿namespace Chess.PlayWithHuman
 {
-	partial class PlayWithHumanUI
+	partial class PlayWithHumanView
 	{
 		/// <summary>
 		/// Required designer variable.
@@ -33,6 +33,7 @@
 			// 
 			// tableLayoutPanel
 			// 
+			this.tableLayoutPanel.BackColor = System.Drawing.Color.Gray;
 			this.tableLayoutPanel.ColumnCount = 8;
 			this.tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 12.5F));
 			this.tableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 12.5F));
@@ -53,17 +54,17 @@
 			this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 12.5F));
 			this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 12.5F));
 			this.tableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 12.5F));
-			this.tableLayoutPanel.Size = new System.Drawing.Size(600, 600);
+			this.tableLayoutPanel.Size = new System.Drawing.Size(750, 750);
 			this.tableLayoutPanel.TabIndex = 0;
 			// 
-			// PlayWithHumanUI
+			// PlayWithHumanView
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(825, 667);
+			this.ClientSize = new System.Drawing.Size(1022, 843);
 			this.Controls.Add(this.tableLayoutPanel);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-			this.Name = "PlayWithHumanUI";
+			this.Name = "PlayWithHumanView";
 			this.Text = "PlayWithHumanUI";
 			this.ResumeLayout(false);
 

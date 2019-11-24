@@ -132,18 +132,38 @@ namespace Chess.Engine.Logic
 			if (turn == ChessColor.White)
 			{
 				if (gameHistory.WhiteLongCastlingPossible && !IsAnyCoordinateInDanger(1, 'A', 'B', 'C', 'D', 'E'))
-					possibleCastlingMoves.Add(new GameMove {Castling = Castling.Long});
+					possibleCastlingMoves.Add(new GameMove
+					{
+						From = new Coordinate('E', 1),
+						To = new Coordinate('C', 1),
+						Castling = Castling.Long
+					});
 
 				if (gameHistory.WhiteShortCastlingPossible && !IsAnyCoordinateInDanger(1, 'E', 'F', 'G', 'H'))
-					possibleCastlingMoves.Add(new GameMove {Castling = Castling.Short});
+					possibleCastlingMoves.Add(new GameMove
+					{
+						From = new Coordinate('E', 1),
+						To = new Coordinate('G', 1),
+						Castling = Castling.Short
+					});
 			}
 			else
 			{
 				if (gameHistory.BlackLongCastlingPossible && !IsAnyCoordinateInDanger(8, 'A', 'B', 'C', 'D', 'E'))
-					possibleCastlingMoves.Add(new GameMove {Castling = Castling.Long});
+					possibleCastlingMoves.Add(new GameMove
+					{
+						From = new Coordinate('E', 8),
+						To = new Coordinate('C', 8),
+						Castling = Castling.Long
+					});
 
 				if (gameHistory.BlackShortCastlingPossible && !IsAnyCoordinateInDanger(8, 'E', 'F', 'G', 'H'))
-					possibleCastlingMoves.Add(new GameMove {Castling = Castling.Short});
+					possibleCastlingMoves.Add(new GameMove
+					{
+						From = new Coordinate('E', 8),
+						To = new Coordinate('G', 8),
+						Castling = Castling.Short
+					});
 			}
 
 			return possibleCastlingMoves;

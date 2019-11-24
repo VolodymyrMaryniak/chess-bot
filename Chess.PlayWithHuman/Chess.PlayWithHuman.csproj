@@ -46,16 +46,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PlayWithHumanUI.cs">
+    <Compile Include="ChessboardFieldLabel.cs" />
+    <Compile Include="ChoseChessPieceTypeView.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="PlayWithHumanUI.Designer.cs">
-      <DependentUpon>PlayWithHumanUI.cs</DependentUpon>
+    <Compile Include="ChoseChessPieceTypeView.Designer.cs">
+      <DependentUpon>ChoseChessPieceTypeView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Extensions\ChessboardFieldLabelExtensions.cs" />
+    <Compile Include="Extensions\ChessPieceExtensions.cs" />
+    <Compile Include="Helpers\ImageHelper.cs" />
+    <Compile Include="PlayWithHumanView.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PlayWithHumanView.Designer.cs">
+      <DependentUpon>PlayWithHumanView.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="PlayWithHumanUI.resx">
-      <DependentUpon>PlayWithHumanUI.cs</DependentUpon>
+    <EmbeddedResource Include="ChoseChessPieceTypeView.resx">
+      <DependentUpon>ChoseChessPieceTypeView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PlayWithHumanView.resx">
+      <DependentUpon>PlayWithHumanView.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -65,6 +78,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -78,6 +92,31 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Chess.Engine\Chess.Engine.csproj">
+      <Project>{8ce3d3f1-cb92-4b37-b8cd-d492589ecd1b}</Project>
+      <Name>Chess.Engine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Chess.MinimaxBot\Chess.MinimaxBot.csproj">
+      <Project>{ebc07ebe-b4f4-415a-8a0c-2e934ce25cde}</Project>
+      <Name>Chess.MinimaxBot</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <None Include="Resources\White_Queen.png" />
+    <None Include="Resources\Black_Queen.png" />
+    <None Include="Resources\White_Pawn.png" />
+    <None Include="Resources\Black_Pawn.png" />
+    <None Include="Resources\White_Knight.png" />
+    <None Include="Resources\Black_Knight.png" />
+    <None Include="Resources\White_King.png" />
+    <None Include="Resources\Black_King.png" />
+    <None Include="Resources\White_Bishop.png" />
+    <None Include="Resources\White_Rook.png" />
+    <None Include="Resources\Black_Rook.png" />
+    <None Include="Resources\Black_Bishop.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -61,7 +61,7 @@ namespace Chess.Engine.Logic.ChessPieceMoveValidators.Extensions
 
 			var toCoordinate = Chessboard.GetCoordinate(i, j);
 			if (chessPieceColor == ChessColor.White && toCoordinate.Number == 8 ||
-			    chessPieceColor == ChessColor.White && toCoordinate.Number == 1)
+			    chessPieceColor == ChessColor.Black && toCoordinate.Number == 1)
 				list.AddMovesWithAllCastToOptions(new GameMove {From = from, To = toCoordinate});
 			else
 				list.Add(new GameMove {From = from, To = toCoordinate});
@@ -111,6 +111,7 @@ namespace Chess.Engine.Logic.ChessPieceMoveValidators.Extensions
 			move.CastTo = ChessPieceType.Bishop;
 			list.Add(move);
 			move.CastTo = ChessPieceType.Knight;
+			list.Add(move);
 		}
 
 		public static void Move(MoveDirection direction, ref int i, ref int j)

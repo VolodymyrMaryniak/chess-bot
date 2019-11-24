@@ -85,7 +85,14 @@ namespace Chess.Engine.Game
 
 		public override int GetHashCode()
 		{
-			return Board.GetHashCode();
+			var cacheCode = 0;
+			for (var i = 0; i < 8; i++)
+			for (var j = 0; j < 8; j++)
+				cacheCode ^= Board[i, j].HasValue
+					? i * 100000 + j * 10000 + (int) Board[i, j].Value.Owner * 1000 + (int) Board[i, j].Value.Type * 100
+					: i * 100000 + j * 1000;
+
+			return cacheCode;
 		}
 
 		public static bool IsCoordinateValid(Coordinate coordinate)
@@ -106,16 +113,16 @@ namespace Chess.Engine.Game
 			return new Coordinate((char)(j + 'A'), i + 1);
 		}
 
-		#region private methods
-
-		private void Set(ChessPiece? chessPiece, Coordinate toCoordinate)
+		public void Set(ChessPiece? chessPiece, Coordinate toCoordinate)
 		{
-			Board[toCoordinate.Number + 1, toCoordinate.Letter - 'A'] = chessPiece;
+			Board[toCoordinate.Number - 1, toCoordinate.Letter - 'A'] = chessPiece;
 		}
+
+		#region private methods
 
 		private ChessPiece? Get(Coordinate coordinate)
 		{
-			return Board[coordinate.Number + 1, coordinate.Letter - 'A'];
+			return Board[coordinate.Number - 1, coordinate.Letter - 'A'];
 		}
 
 		private void SetChessPiecesToTheirOriginalPositions()
