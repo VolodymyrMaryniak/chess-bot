@@ -4,16 +4,17 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{8CE3D3F1-CB92-4B37-B8CD-D492589ECD1B}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Chess.Engine</RootNamespace>
-    <AssemblyName>Chess.Engine</AssemblyName>
+    <ProjectGuid>{0C5D93C3-4409-40B9-A769-7CA2D423365D}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>Chess.PlayWithHuman</RootNamespace>
+    <AssemblyName>Chess.PlayWithHuman</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -23,6 +24,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -37,37 +39,45 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Enums\Castling.cs" />
-    <Compile Include="Enums\ChessColor.cs" />
-    <Compile Include="Enums\ChessGameResult.cs" />
-    <Compile Include="Enums\ChessPieceType.cs" />
-    <Compile Include="Enums\Extensions\ChessColorExtensions.cs" />
-    <Compile Include="Enums\GameStatus.cs" />
-    <Compile Include="Extensions\DictionaryExtensions.cs" />
-    <Compile Include="Game\Chessboard.cs" />
-    <Compile Include="Game\Game.cs" />
-    <Compile Include="Game\GameHistory.cs" />
-    <Compile Include="Game\GameState.cs" />
-    <Compile Include="Game\Player.cs" />
-    <Compile Include="Logic\ChessPieceMoveValidators\BishopMoveValidator.cs" />
-    <Compile Include="Logic\ChessPieceMoveValidators\Extensions\MoveValidatorExtensions.cs" />
-    <Compile Include="Logic\ChessPieceMoveValidators\InternalEnums\MoveDirection.cs" />
-    <Compile Include="Logic\ChessPieceMoveValidators\KingMoveValidator.cs" />
-    <Compile Include="Logic\ChessPieceMoveValidators\KnightMoveValidator.cs" />
-    <Compile Include="Logic\ChessPieceMoveValidators\PawnMoveValidator.cs" />
-    <Compile Include="Logic\ChessPieceMoveValidators\QueenMoveValidator.cs" />
-    <Compile Include="Logic\ChessPieceMoveValidators\RookMoveValidator.cs" />
-    <Compile Include="Logic\GameMoveValidator.cs" />
-    <Compile Include="Models\ChessPiece.cs" />
-    <Compile Include="Models\ChessPieceCoordinate.cs" />
-    <Compile Include="Models\Coordinate.cs" />
-    <Compile Include="Models\GameMove.cs" />
+    <Compile Include="PlayWithHumanUI.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PlayWithHumanUI.Designer.cs">
+      <DependentUpon>PlayWithHumanUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="PlayWithHumanUI.resx">
+      <DependentUpon>PlayWithHumanUI.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
