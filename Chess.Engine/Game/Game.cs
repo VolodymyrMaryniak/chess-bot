@@ -13,7 +13,7 @@ namespace Chess.Engine.Game
 			_whitePlayer = whitePlayer;
 			_blackPlayer = blackPlayer;
 
-			_gameState = GameState.GetNewGameState();
+			_gameState = GameState.CreateNewGameState();
 		}
 
 		public void Move(GameMove gameMove)

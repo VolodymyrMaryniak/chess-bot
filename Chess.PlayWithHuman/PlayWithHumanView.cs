@@ -24,7 +24,7 @@ namespace Chess.PlayWithHuman
 
 		public PlayWithHumanView()
 		{
-			_gameState = GameState.GetNewGameState();
+			_gameState = GameState.CreateNewGameState();
 			InitializeComponent();
 
 			_chessboardFieldLabels = new List<ChessboardFieldLabel>();

@@ -8,7 +8,7 @@ namespace Chess.MinimaxBot
 {
 	public class GameStateRatingCalculator
 	{
-		public double GetGameStateRating( GameState gameState)
+		public double GetGameStateRating(GameState gameState)
 		{
 			var chessPieces = gameState.Chessboard.ChessPieces;
 

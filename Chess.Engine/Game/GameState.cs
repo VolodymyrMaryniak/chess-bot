@@ -25,7 +25,7 @@ namespace Chess.Engine.Game
 			CalculatePossibleGameMoves();
 		}
 
-		public static GameState GetNewGameState()
+		public static GameState CreateNewGameState()
 		{
 			return new GameState(new Chessboard(), GameStatus.NotStarted, new GameHistory(), ChessColor.White);
 		}

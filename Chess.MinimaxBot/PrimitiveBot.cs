@@ -1,4 +1,5 @@
-﻿using Chess.Engine.Enums;
+﻿using Chess.Engine.Abstract;
+using Chess.Engine.Enums;
 using Chess.Engine.Enums.Extensions;
 using Chess.Engine.Game;
 using Chess.Engine.Models;
@@ -7,7 +8,7 @@ using System.Linq;
 
 namespace Chess.MinimaxBot
 {
-	public class PrimitiveBot
+	public class PrimitiveBot : IChessBot
 	{
 		private readonly GameStateRatingCalculator _gameStateRatingCalculator;
 		private readonly int _botLevel;
@@ -41,6 +42,11 @@ namespace Chess.MinimaxBot
 				default:
 					throw new ArgumentOutOfRangeException(nameof(gameState.Turn));
 			}
+		}
+
+		public override string ToString()
+		{
+			return $"[PrimitiveBot, Level {_botLevel}]";
 		}
 
 		private double GetTheBestMoveRating(GameState gameState, ChessColor botColor, int deep)
