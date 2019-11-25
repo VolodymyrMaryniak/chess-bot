@@ -55,7 +55,10 @@
     <Compile Include="Game\GameState.cs" />
     <Compile Include="Game\Player.cs" />
     <Compile Include="Logic\ChessPieceMoveValidators\BishopMoveValidator.cs" />
+    <Compile Include="Logic\ChessPieceMoveValidators\Extensions\ChessboardExtensions.cs" />
+    <Compile Include="Logic\ChessPieceMoveValidators\Extensions\MoveCheckOptionsExtensions.cs" />
     <Compile Include="Logic\ChessPieceMoveValidators\Extensions\MoveValidatorExtensions.cs" />
+    <Compile Include="Logic\ChessPieceMoveValidators\InternalEnums\MoveCheckOption.cs" />
     <Compile Include="Logic\ChessPieceMoveValidators\InternalEnums\MoveDirection.cs" />
     <Compile Include="Logic\ChessPieceMoveValidators\KingMoveValidator.cs" />
     <Compile Include="Logic\ChessPieceMoveValidators\KnightMoveValidator.cs" />

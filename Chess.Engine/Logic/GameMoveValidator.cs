@@ -43,7 +43,7 @@ namespace Chess.Engine.Logic
 			softValidMoves.AddRange(pawnForwardMoves);
 
 			var availableMoves = softValidMoves
-				.Where(x => IsValid(chessboard, x, gameHistory))
+				.Where(x => IsValid(chessboard, x))
 				.ToList();
 
 			availableMoves.AddRange(GetPossibleCastlingMoves(chessboard, turn, gameHistory));
@@ -68,25 +68,24 @@ namespace Chess.Engine.Logic
 			return lastTurnBy == ChessColor.White ? ChessGameResult.WhiteWon : ChessGameResult.BlackWon;
 		}
 
-		private bool IsValid(Chessboard chessboard, GameMove move, GameHistory gameHistory)
+		private bool IsValid(Chessboard chessboard, GameMove move)
 		{
 			var chessPiece = chessboard.GetChessPieceOrDefault(move.From);
 			if (!chessPiece.HasValue)
 				return false;
 
 			var chessBoardCopy = (Chessboard)chessboard.Clone();
-			var gameHistoryCopy = (GameHistory)gameHistory.Clone();
 
-			gameHistoryCopy.Add(move, chessPiece.Value.Owner, chessBoardCopy);
 			chessBoardCopy.Move(move);
 
 			var kingCoordinate = chessBoardCopy.GetCoordinate(new ChessPiece { Owner = chessPiece.Value.Owner, Type = ChessPieceType.King });
-			var isKingInDanger = IsCoordinateInDanger(chessBoardCopy, chessPiece.Value.Owner, gameHistoryCopy, kingCoordinate);
+			var isKingInDanger = IsCoordinateInDanger(chessBoardCopy, chessPiece.Value.Owner, kingCoordinate);
 
 			return !isKingInDanger;
 		}
 
-		private List<GameMove> GetSoftValidMoves(Chessboard chessboard, ChessPieceCoordinate chessPieceCoordinate, GameHistory history)
+		private IEnumerable<GameMove> GetSoftValidMoves(Chessboard chessboard, ChessPieceCoordinate chessPieceCoordinate,
+			GameHistory history)
 		{
 			var fromCoordinate = chessPieceCoordinate.Coordinate;
 			var chessPiece = chessPieceCoordinate.ChessPiece;
@@ -104,18 +103,39 @@ namespace Chess.Engine.Logic
 				case ChessPieceType.Knight:
 					return _knightMoveValidator.GetSoftValidKnightMoves(chessboard, fromCoordinate, chessPiece.Owner);
 				case ChessPieceType.Pawn:
-					return _pawnMoveValidator.GetPawnKillMoves(chessboard, fromCoordinate, chessPiece.Owner, history.GetLastMove());
+					return _pawnMoveValidator.GetPawnKillMoves(chessboard, fromCoordinate, chessPiece.Owner, history.LastMove);
 				default:
 					throw new ArgumentOutOfRangeException(nameof(chessPiece.Type), chessPiece.Type, null);
 			}
 		}
 
-		private bool IsCoordinateInDanger(Chessboard chessboard, ChessColor turn, GameHistory gameHistory, Coordinate coordinate)
+		private bool CanMove(Chessboard chessboard, ChessPiece chessPiece, GameMove move)
+		{
+			switch (chessPiece.Type)
+			{
+				case ChessPieceType.King:
+					return _kingMoveValidator.CanMove(chessboard, move);
+				case ChessPieceType.Queen:
+					return _queenMoveValidator.CanMove(chessboard, move);
+				case ChessPieceType.Rook:
+					return _rookMoveValidator.CanMove(chessboard, move);
+				case ChessPieceType.Bishop:
+					return _bishopMoveValidator.CanMove(chessboard, move);
+				case ChessPieceType.Knight:
+					return _knightMoveValidator.CanMove(chessboard, move);
+				case ChessPieceType.Pawn:
+					return _pawnMoveValidator.CanMove(chessboard, chessPiece.Owner, move);
+				default:
+					throw new ArgumentOutOfRangeException(nameof(chessPiece.Type), chessPiece.Type, null);
+			}
+		}
+
+		private bool IsCoordinateInDanger(Chessboard chessboard, ChessColor turn, Coordinate coordinate)
 		{
 			var opponentChessPieceCoordinates = chessboard.ChessPieceCoordinates.Where(x => x.ChessPiece.Owner != turn);
 
-			var isCoordinateInDanger = opponentChessPieceCoordinates.Any(chessPieceCoordinate =>
-				GetSoftValidMoves(chessboard, chessPieceCoordinate, gameHistory).Any(m => m.To == coordinate));
+			var isCoordinateInDanger = opponentChessPieceCoordinates
+				.Any(x => CanMove(chessboard, x.ChessPiece, new GameMove {From = x.Coordinate, To = coordinate}));
 
 			return isCoordinateInDanger;
 		}
@@ -126,12 +146,19 @@ namespace Chess.Engine.Logic
 
 			bool IsAnyCoordinateInDanger(int number, params char[] letters)
 			{
-				return letters.Any(x => IsCoordinateInDanger(chessboard, turn, gameHistory, new Coordinate(x, number)));
+				return letters.Any(x => IsCoordinateInDanger(chessboard, turn, new Coordinate(x, number)));
+			}
+
+			bool IsAnyCoordinateNotEmpty(int number, params char[] letters)
+			{
+				return letters.Any(x => chessboard.GetChessPieceOrDefault(new Coordinate(x, number)).HasValue);
 			}
 
 			if (turn == ChessColor.White)
 			{
-				if (gameHistory.WhiteLongCastlingPossible && !IsAnyCoordinateInDanger(1, 'A', 'B', 'C', 'D', 'E'))
+				if (gameHistory.WhiteLongCastlingPossible &&
+				    !IsAnyCoordinateNotEmpty(1, 'B', 'C', 'D') &&
+				    !IsAnyCoordinateInDanger(1, 'A', 'B', 'C', 'D', 'E'))
 					possibleCastlingMoves.Add(new GameMove
 					{
 						From = new Coordinate('E', 1),
@@ -139,7 +166,9 @@ namespace Chess.Engine.Logic
 						Castling = Castling.Long
 					});
 
-				if (gameHistory.WhiteShortCastlingPossible && !IsAnyCoordinateInDanger(1, 'E', 'F', 'G', 'H'))
+				if (gameHistory.WhiteShortCastlingPossible &&
+					!IsAnyCoordinateNotEmpty(1, 'F', 'G') && 
+					!IsAnyCoordinateInDanger(1, 'E', 'F', 'G', 'H'))
 					possibleCastlingMoves.Add(new GameMove
 					{
 						From = new Coordinate('E', 1),
@@ -149,7 +178,9 @@ namespace Chess.Engine.Logic
 			}
 			else
 			{
-				if (gameHistory.BlackLongCastlingPossible && !IsAnyCoordinateInDanger(8, 'A', 'B', 'C', 'D', 'E'))
+				if (gameHistory.BlackLongCastlingPossible &&
+					!IsAnyCoordinateNotEmpty(8, 'B', 'C', 'D') &&
+					!IsAnyCoordinateInDanger(8, 'A', 'B', 'C', 'D', 'E'))
 					possibleCastlingMoves.Add(new GameMove
 					{
 						From = new Coordinate('E', 8),
@@ -157,7 +188,9 @@ namespace Chess.Engine.Logic
 						Castling = Castling.Long
 					});
 
-				if (gameHistory.BlackShortCastlingPossible && !IsAnyCoordinateInDanger(8, 'E', 'F', 'G', 'H'))
+				if (gameHistory.BlackShortCastlingPossible &&
+				    !IsAnyCoordinateNotEmpty(8, 'F', 'G') &&
+					!IsAnyCoordinateInDanger(8, 'E', 'F', 'G', 'H'))
 					possibleCastlingMoves.Add(new GameMove
 					{
 						From = new Coordinate('E', 8),

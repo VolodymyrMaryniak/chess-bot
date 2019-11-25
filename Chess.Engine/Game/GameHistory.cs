@@ -17,14 +17,11 @@ namespace Chess.Engine.Game
 		public bool IsPositionRepeatedThreeTimes => PositionsRepeatedTimes.Any(keyValuePair => keyValuePair.Value == 3);
 
 		private Dictionary<int, int> PositionsRepeatedTimes { get; set; }
-		private List<GameMove> WhiteMoves { get; set; }
-		private List<GameMove> BlackMoves { get; set; }
+		public GameMove? LastMove { get; private set; }
 
 		public GameHistory()
 		{
 			PositionsRepeatedTimes = new Dictionary<int, int>();
-			WhiteMoves = new List<GameMove>();
-			BlackMoves = new List<GameMove>();
 			BlackShortCastlingPossible = BlackLongCastlingPossible = WhiteShortCastlingPossible = WhiteLongCastlingPossible = true;
 		}
 
@@ -37,11 +34,7 @@ namespace Chess.Engine.Game
 		public void Add(GameMove move, ChessColor turn, Chessboard chessboard)
 		{
 			var chessPiece = chessboard.GetChessPiece(move.From);
-
-			if (turn == ChessColor.White)
-				WhiteMoves.Add(move);
-			else
-				BlackMoves.Add(move);
+			LastMove = move;
 
 			CheckCastlingPossibility(chessPiece, move);
 
@@ -52,21 +45,12 @@ namespace Chess.Engine.Game
 				PositionsRepeatedTimes.Add(cacheCode, 1);
 		}
 
-		public GameMove? GetLastMove()
-		{
-			if (WhiteMoves.Count == BlackMoves.Count && WhiteMoves.Any())
-				return BlackMoves.Last();
-
-			return WhiteMoves.LastOrDefault();
-		}
-
 		public object Clone()
 		{
 			return new GameHistory
 			{
-				WhiteMoves = WhiteMoves.ToList(),
-				BlackMoves = BlackMoves.ToList(),
 				PositionsRepeatedTimes = PositionsRepeatedTimes.CloneDictionary(),
+				LastMove = LastMove,
 				WhiteShortCastlingPossible = WhiteShortCastlingPossible,
 				WhiteLongCastlingPossible = WhiteLongCastlingPossible,
 				BlackShortCastlingPossible = BlackShortCastlingPossible,

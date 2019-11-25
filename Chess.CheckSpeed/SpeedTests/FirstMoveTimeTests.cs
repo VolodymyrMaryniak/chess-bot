@@ -5,7 +5,7 @@ using Chess.Engine.Game;
 
 namespace Chess.CheckSpeed.SpeedTests
 {
-	public class FirstMoveTimeTests : ChessBotSpeedTestBase
+	public class FirstMoveTimeTests : ChessSpeedTestBase
 	{
 		public FirstMoveTimeTests(ILogger logger) : base(logger)
 		{
@@ -15,9 +15,10 @@ namespace Chess.CheckSpeed.SpeedTests
 		{
 			var gameState = GameState.CreateNewGameState();
 
-			TestStarted(chessBot);
+			var chessBotName = chessBot.ToString();
+			TestStarted(chessBotName);
 			chessBot.GetTheBestMove(gameState);
-			TestFinished(chessBot);
+			TestFinished(chessBotName);
 		}
 	}
 }

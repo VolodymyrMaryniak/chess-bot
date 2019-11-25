@@ -3,6 +3,7 @@ using Chess.Engine.Game;
 using Chess.Engine.Logic.ChessPieceMoveValidators.Extensions;
 using Chess.Engine.Logic.ChessPieceMoveValidators.InternalEnums;
 using Chess.Engine.Models;
+using System;
 using System.Collections.Generic;
 
 namespace Chess.Engine.Logic.ChessPieceMoveValidators
@@ -68,6 +69,27 @@ namespace Chess.Engine.Logic.ChessPieceMoveValidators
 
 					return pawnForwardMoves;
 			}
+		}
+
+		public bool CanMove(Chessboard chessboard, ChessColor pawnColor, GameMove move)
+		{
+			if (pawnColor == ChessColor.White && move.From.Number >= move.To.Number ||
+			    pawnColor == ChessColor.Black && move.From.Number <= move.To.Number)
+				return false;
+
+			var lettersDiffAbs = Math.Abs(move.From.Letter - move.To.Letter);
+			if (lettersDiffAbs > 1)
+				return false;
+
+			var numbersDiffAbs = Math.Abs(move.From.Number - move.To.Number);
+			if (numbersDiffAbs > 1)
+				return false;
+
+			var thereIsSomeone = chessboard.GetChessPieceOrDefault(move.To).HasValue;
+			if (move.To.Letter == move.From.Letter)
+				return !thereIsSomeone;
+
+			return thereIsSomeone;
 		}
 	}
 }

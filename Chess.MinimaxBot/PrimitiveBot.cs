@@ -31,7 +31,7 @@ namespace Chess.MinimaxBot
 						Rating = GetTheBestMoveRating(gameStateClone, gameState.Turn.GetOppositeChessColor(), _botLevel - 1),
 						Move = move
 					};
-				}).ToList();
+				});//.ToList();
 
 			switch (gameState.Turn)
 			{

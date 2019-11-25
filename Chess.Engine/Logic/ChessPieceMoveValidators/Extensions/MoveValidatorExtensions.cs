@@ -9,15 +9,28 @@ namespace Chess.Engine.Logic.ChessPieceMoveValidators.Extensions
 {
 	internal static class MoveValidatorExtensions
 	{
-		public static bool AddIfCoordinateIsValid(
+		public static readonly MoveDirection[] MoveDirections =
+		{
+			MoveDirection.Upwards,
+			MoveDirection.UpwardsRight,
+			MoveDirection.Right,
+			MoveDirection.DownRight,
+			MoveDirection.Down,
+			MoveDirection.DownLeft,
+			MoveDirection.Left,
+			MoveDirection.UpwardsLeft
+		};
+
+		public static bool AddIf(
 			this List<GameMove> list, 
 			Chessboard chessboard, 
 			Coordinate from,
 			ChessColor chessPieceColor, 
 			int i, 
-			int j)
+			int j,
+			MoveCheckOption moveCheckOptions)
 		{
-			if (!chessboard.IsCoordinateValid(chessPieceColor, i, j))
+			if (!moveCheckOptions.IsTrue(chessboard, chessPieceColor, i, j))
 				return false;
 
 			list.Add(new GameMove { From = @from, To = Chessboard.GetCoordinate(i, j) });
@@ -82,24 +95,31 @@ namespace Chess.Engine.Logic.ChessPieceMoveValidators.Extensions
 				Move(direction, ref i, ref j);
 			}
 
-			list.AddIfCoordinateIsValid(chessboard, from, chessPieceColor, i, j);
+			list.AddIf(chessboard, from, chessPieceColor, i, j, MoveCheckOption.Valid);
 		}
 
-		public static bool IsCoordinateValid(this Chessboard chessboard, ChessColor chessPieceColor, int i, int j)
+		public static void AddSoftValidMove(
+			this List<GameMove> list,
+			Chessboard chessboard,
+			Coordinate from,
+			ChessColor chessPieceColor,
+			MoveDirection direction)
 		{
-			if (!Chessboard.IsCoordinateValid(i, j))
-				return false;
-
-			var chessPieceInPosition = chessboard.Board[i, j];
-			return !chessPieceInPosition.HasValue || chessPieceInPosition.Value.Owner != chessPieceColor;
+			from.ToArrayIndexes(out var i, out var j);
+			Move(direction, ref i, ref j);
+			list.AddIf(chessboard, from, chessPieceColor, i, j, MoveCheckOption.Valid);
 		}
 
-		public static bool IsCoordinateEmpty(this Chessboard chessboard, int i, int j)
-		{
-			if (!Chessboard.IsCoordinateValid(i, j))
-				return false;
 
-			return !chessboard.Board[i, j].HasValue;
+		public static bool CanMove(this Chessboard chessboard, MoveDirection direction, GameMove move)
+		{
+			move.From.ToArrayIndexes(out var i, out var j);
+			move.To.ToArrayIndexes(out var toI, out var toJ);
+
+			do Move(direction, ref i, ref j);
+			while (chessboard.IsCoordinateEmpty(i, j) || i == toI && j == toJ);
+
+			return i == toI && j == toJ;
 		}
 
 		public static void AddMovesWithAllCastToOptions(this List<GameMove> list, GameMove move)

@@ -33,8 +33,7 @@ namespace Chess.Engine.Game
 
 		public ChessPiece? GetChessPieceOrDefault(Coordinate coordinate)
 		{
-			ValidateCoordinate(coordinate);
-			return Get(coordinate);
+			return Board[coordinate.Number - 1, coordinate.Letter - 'A'];
 		}
 
 		public Coordinate GetCoordinate(ChessPiece chessPiece)
@@ -61,16 +60,10 @@ namespace Chess.Engine.Game
 
 		public void Move(GameMove move)
 		{
-			ValidateCoordinate(move.To);
-			ValidateCoordinate(move.From);
-
-			var chessPiece = Get(move.From);
-
-			if (!chessPiece.HasValue)
-				throw new Exception("Chess piece not found");
+			var chessPiece = GetChessPiece(move.From);
 
 			Set(null, move.From);
-			Set(chessPiece.Value, move.To);
+			Set(chessPiece, move.To);
 		}
 
 		public object Clone()
@@ -95,14 +88,6 @@ namespace Chess.Engine.Game
 			return cacheCode;
 		}
 
-		public static bool IsCoordinateValid(Coordinate coordinate)
-		{
-			return coordinate.Number >= 1 &&
-			       coordinate.Number <= 8 &&
-			       coordinate.Letter >= 'A' &&
-			       coordinate.Letter <= 'H';
-		}
-
 		public static bool IsCoordinateValid(int i, int j)
 		{
 			return i >= 0 && i <= 7 && j >= 0 && j <= 7;
@@ -119,11 +104,6 @@ namespace Chess.Engine.Game
 		}
 
 		#region private methods
-
-		private ChessPiece? Get(Coordinate coordinate)
-		{
-			return Board[coordinate.Number - 1, coordinate.Letter - 'A'];
-		}
 
 		private void SetChessPiecesToTheirOriginalPositions()
 		{
@@ -194,15 +174,6 @@ namespace Chess.Engine.Game
 			}
 
 			return chessPieces;
-		}
-
-		private static void ValidateCoordinate(Coordinate coordinate)
-		{
-			if (coordinate.Number < 1 || coordinate.Number > 8)
-				throw new ArgumentOutOfRangeException(nameof(coordinate.Number));
-
-			if (coordinate.Letter < 'A' || coordinate.Letter > 'H')
-				throw new ArgumentOutOfRangeException(nameof(coordinate.Letter));
 		}
 
 		#endregion
