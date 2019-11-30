@@ -10,6 +10,9 @@ namespace Chess.MinimaxBot
 	{
 		public double GetGameStateRating(GameState gameState)
 		{
+			if (gameState.GameStatus == GameStatus.Finished)
+				return GetGameRatingFromGameResult(gameState.GetGameResult());
+
 			var chessPieces = gameState.Chessboard.ChessPieces;
 
 			var whiteRating = GetChessPiecesRating(chessPieces.Where(x => x.Owner == ChessColor.White).Select(x => x.Type).ToList());
@@ -45,6 +48,21 @@ namespace Chess.MinimaxBot
 					return 1;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(chessPiece), chessPiece, null);
+			}
+		}
+
+		private double GetGameRatingFromGameResult(ChessGameResult gameResult)
+		{
+			switch (gameResult)
+			{
+				case ChessGameResult.WhiteWon:
+					return 100;
+				case ChessGameResult.BlackWon:
+					return -100;
+				case ChessGameResult.Draw:
+					return 0;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(gameResult), gameResult, null);
 			}
 		}
 	}

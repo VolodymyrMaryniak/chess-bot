@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GameStateRating.cs" />
     <Compile Include="GameStateRatingCalculator.cs" />
     <Compile Include="PrimitiveBot.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

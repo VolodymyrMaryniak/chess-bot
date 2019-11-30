@@ -3,6 +3,8 @@ using Chess.Engine.Enums;
 using Chess.Engine.Game;
 using Chess.Engine.Models;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Chess.MinimaxBot
@@ -10,78 +12,95 @@ namespace Chess.MinimaxBot
 	public class PrimitiveBot : IChessBot
 	{
 		private readonly GameStateRatingCalculator _gameStateRatingCalculator;
-		private readonly int _botLevel;
-		public PrimitiveBot(int botLevel)
+		private readonly Stopwatch _stopwatch;
+
+		public PrimitiveBot()
 		{
 			_gameStateRatingCalculator = new GameStateRatingCalculator();
-			_botLevel = botLevel;
+			_stopwatch = new Stopwatch();
 		}
 
-		public GameMove GetTheBestMove(GameState gameState)
+		public GameMove TheBestMove { get; private set; }
+		public TimeSpan TimeSpanForSearching { get; set; }
+
+		public void StartSearch(GameState gameState)
 		{
-			var availableMovesRatings = gameState.PossibleGameMoves
-				.Select(move =>
-				{
-					var gameStateClone = (GameState) gameState.Clone();
-					gameStateClone.Move(move);
+			_stopwatch.Start();
 
-					return new
-					{
-						Rating = GetTheBestMoveRating(gameStateClone, _botLevel - 1),
-						Move = move
-					};
-				});
-
-			switch (gameState.Turn)
+			var gameStateRating = new GameStateRating
 			{
-				case ChessColor.White:
-					return availableMovesRatings.OrderByDescending(x => x.Rating).First().Move;
-				case ChessColor.Black:
-					return availableMovesRatings.OrderBy(x => x.Rating).First().Move;
-				default:
-					throw new ArgumentOutOfRangeException(nameof(gameState.Turn));
-			}
+				GameState = gameState,
+				Rating = _gameStateRatingCalculator.GetGameStateRating(gameState)
+			};
+
+			CalculateChildGameStateRatings(gameStateRating);
+			var deep = 0;
+			while (ContinueSearch(gameStateRating, deep)) deep++;
+
+			TheBestMove = CalculateTheBestMove(gameStateRating);
+			_stopwatch.Reset();
 		}
 
-		public override string ToString()
+		private bool ContinueSearch(GameStateRating gameStateRating, int deep)
 		{
-			return $"[PrimitiveBot, Level {_botLevel}]";
-		}
-
-		private double GetTheBestMoveRating(GameState gameState, int deep)
-		{
-			if (gameState.GameStatus == GameStatus.Finished)
-				return GetGameRatingFromGameResult(gameState.GetGameResult());
-
-			var availableMovesRatings = gameState.PossibleGameMoves
-				.Select(move =>
-				{
-					var gameStateClone = (GameState) gameState.Clone();
-					gameStateClone.Move(move);
-
-					return deep == 0
-						? _gameStateRatingCalculator.GetGameStateRating(gameStateClone)
-						: GetTheBestMoveRating(gameStateClone, deep - 1);
-				});
-
-			return gameState.Turn == ChessColor.White
-				? availableMovesRatings.Max()
-				: availableMovesRatings.Min();
-		}
-
-		private double GetGameRatingFromGameResult(ChessGameResult gameResult)
-		{
-			switch (gameResult)
+			foreach (var item in SelectGameStateRatings(new List<GameStateRating> {gameStateRating}, deep))
 			{
-				case ChessGameResult.WhiteWon:
-					return 100;
-				case ChessGameResult.BlackWon:
-					return -100;
-				case ChessGameResult.Draw:
-					return 0;
-				default:
-					throw new ArgumentOutOfRangeException(nameof(gameResult), gameResult, null);
+				if (_stopwatch.Elapsed > TimeSpanForSearching)
+					return false;
+
+				CalculateChildGameStateRatings(item);
 			}
+
+			return true;
+		}
+
+		private IEnumerable<GameStateRating> SelectGameStateRatings(IEnumerable<GameStateRating> gameStateRatings, int deep)
+		{
+			return deep == 0
+				? gameStateRatings.SelectMany(x => x.PossibleMoves.Select(m => m.Value))
+				: SelectGameStateRatings(gameStateRatings.SelectMany(x => x.PossibleMoves.Select(m => m.Value)), deep - 1);
+		}
+
+		private void CalculateChildGameStateRatings(GameStateRating gameStateRating)
+		{
+			gameStateRating.PossibleMoves = gameStateRating.GameState.PossibleGameMoves.Select(move =>
+			{
+				var gameStateClone = (GameState) gameStateRating.GameState.Clone();
+				gameStateClone.Move(move);
+
+				return new
+				{
+					Move = move,
+					GameState = gameStateClone
+				};
+			}).ToDictionary(x => x.Move, x => new GameStateRating
+			{
+				GameState = x.GameState,
+				Rating = _gameStateRatingCalculator.GetGameStateRating(x.GameState)
+			});
+		}
+
+		private GameMove CalculateTheBestMove(GameStateRating gameStateRating)
+		{
+			var availableMovesRatings = gameStateRating.PossibleMoves.Select(move => new
+			{
+				Rating = GetTheBestMoveRating(move.Value),
+				Move = move.Key
+			});
+
+			return gameStateRating.GameState.Turn == ChessColor.White
+				? availableMovesRatings.OrderByDescending(x => x.Rating).First().Move
+				: availableMovesRatings.OrderBy(x => x.Rating).First().Move;
+		}
+
+		private double GetTheBestMoveRating(GameStateRating gameStateRating)
+		{
+			if (gameStateRating.PossibleMoves == null || !gameStateRating.PossibleMoves.Any())
+				return gameStateRating.Rating;
+
+			return gameStateRating.GameState.Turn == ChessColor.White
+				? gameStateRating.PossibleMoves.Select(x => GetTheBestMoveRating(x.Value)).Max()
+				: gameStateRating.PossibleMoves.Select(x => GetTheBestMoveRating(x.Value)).Min();
 		}
 	}
 }

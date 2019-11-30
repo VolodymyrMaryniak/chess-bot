@@ -1,6 +1,5 @@
 ﻿using Chess.CheckSpeed.Logger;
 using Chess.CheckSpeed.SpeedTests;
-using Chess.MinimaxBot;
 using System;
 
 namespace Chess.CheckSpeed
@@ -11,18 +10,9 @@ namespace Chess.CheckSpeed
 
 		public static void Main(string[] args)
 		{
-			CheckFirstMoveTime();
+			CheckGetAvailableMovesSpeed();
 
 			PressKeyToExit();
-		}
-
-		private static void CheckFirstMoveTime()
-		{
-			var firstMoveTimeTests = new FirstMoveTimeTests(_logger);
-
-			firstMoveTimeTests.CheckFirstMoveTime(new PrimitiveBot(1));
-			firstMoveTimeTests.CheckFirstMoveTime(new PrimitiveBot(2));
-			firstMoveTimeTests.CheckFirstMoveTime(new PrimitiveBot(3));
 		}
 
 		private static void CheckGetAvailableMovesSpeed()

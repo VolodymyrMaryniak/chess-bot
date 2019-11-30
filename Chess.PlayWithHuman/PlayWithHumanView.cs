@@ -29,11 +29,11 @@ namespace Chess.PlayWithHuman
 
 			_chessboardFieldLabels = new List<ChessboardFieldLabel>();
 			SetLabels();
-			_primitiveBot = new PrimitiveBot(2);
+			_primitiveBot = new PrimitiveBot {TimeSpanForSearching = TimeSpan.FromSeconds(trackBar.Value)};
 			_humanPlayer = ChessColor.White;
 		}
 
-		private void LabelOnClick(object sender, EventArgs args)
+		private async void LabelOnClick(object sender, EventArgs args)
 		{
 			if (_gameState.GameStatus == GameStatus.Finished)
 				return;
@@ -63,7 +63,7 @@ namespace Chess.PlayWithHuman
 						moves = moves.Where(x => x.CastTo == choseChessPieceTypeView.ChosenChessPieceType).ToList();
 					}
 
-					ProcessMove(moves.Single());
+					await ProcessMoveAsync(moves.Single());
 					_fromCoordinate = null;
 				}
 				else
@@ -71,13 +71,19 @@ namespace Chess.PlayWithHuman
 			}
 		}
 
-		private void ProcessMove(GameMove move)
+		private async Task ProcessMoveAsync(GameMove move)
 		{
 			_gameState.Move(move);
 			SetChessboardLabelsStyles();
 
 			if (_gameState.Turn != _humanPlayer)
-				_ = ProcessMoveAsync();
+			{
+				await Task.Run(() =>
+				{
+					_primitiveBot.StartSearch(_gameState);
+					return ProcessMoveAsync(_primitiveBot.TheBestMove);
+				});
+			}
 		}
 
 		private void SetLabels()
@@ -137,9 +143,9 @@ namespace Chess.PlayWithHuman
 			row = 7 - i;
 		}
 
-		private async Task ProcessMoveAsync()
+		private void TrackBar_Scroll(object sender, EventArgs e)
 		{
-			await Task.Run(() => ProcessMove(_primitiveBot.GetTheBestMove(_gameState)));
+			_primitiveBot.TimeSpanForSearching = TimeSpan.FromSeconds(trackBar.Value);
 		}
 	}
 }
