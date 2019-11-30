@@ -65,7 +65,7 @@ namespace Chess.Engine.Logic.ChessPieceMoveValidators
 
 					return pawnForwardMoves;
 				default:
-					pawnForwardMoves.Add(forwardMove);
+					pawnForwardMoves.AddIfCoordinateIsEmpty(chessboard, forwardMove);
 
 					return pawnForwardMoves;
 			}

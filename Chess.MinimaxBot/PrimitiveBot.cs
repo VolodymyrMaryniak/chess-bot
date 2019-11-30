@@ -1,6 +1,5 @@
 ﻿using Chess.Engine.Abstract;
 using Chess.Engine.Enums;
-using Chess.Engine.Enums.Extensions;
 using Chess.Engine.Game;
 using Chess.Engine.Models;
 using System;
@@ -20,7 +19,7 @@ namespace Chess.MinimaxBot
 
 		public GameMove GetTheBestMove(GameState gameState)
 		{
-			var availableMovesRatings = gameState.GetAvailableMoves()
+			var availableMovesRatings = gameState.PossibleGameMoves
 				.Select(move =>
 				{
 					var gameStateClone = (GameState) gameState.Clone();
@@ -28,10 +27,10 @@ namespace Chess.MinimaxBot
 
 					return new
 					{
-						Rating = GetTheBestMoveRating(gameStateClone, gameState.Turn.GetOppositeChessColor(), _botLevel - 1),
+						Rating = GetTheBestMoveRating(gameStateClone, _botLevel - 1),
 						Move = move
 					};
-				});//.ToList();
+				});
 
 			switch (gameState.Turn)
 			{
@@ -49,12 +48,12 @@ namespace Chess.MinimaxBot
 			return $"[PrimitiveBot, Level {_botLevel}]";
 		}
 
-		private double GetTheBestMoveRating(GameState gameState, ChessColor botColor, int deep)
+		private double GetTheBestMoveRating(GameState gameState, int deep)
 		{
 			if (gameState.GameStatus == GameStatus.Finished)
 				return GetGameRatingFromGameResult(gameState.GetGameResult());
 
-			var availableMovesRatings = gameState.GetAvailableMoves()
+			var availableMovesRatings = gameState.PossibleGameMoves
 				.Select(move =>
 				{
 					var gameStateClone = (GameState) gameState.Clone();
@@ -62,18 +61,12 @@ namespace Chess.MinimaxBot
 
 					return deep == 0
 						? _gameStateRatingCalculator.GetGameStateRating(gameStateClone)
-						: GetTheBestMoveRating(gameStateClone, botColor.GetOppositeChessColor(), deep - 1);
+						: GetTheBestMoveRating(gameStateClone, deep - 1);
 				});
 
-			switch (botColor)
-			{
-				case ChessColor.White:
-					return availableMovesRatings.Max();
-				case ChessColor.Black:
-					return availableMovesRatings.Min();
-				default:
-					throw new ArgumentOutOfRangeException(nameof(botColor));
-			}
+			return gameState.Turn == ChessColor.White
+				? availableMovesRatings.Max()
+				: availableMovesRatings.Min();
 		}
 
 		private double GetGameRatingFromGameResult(ChessGameResult gameResult)

@@ -12,7 +12,7 @@ namespace Chess.CheckSpeed.SpeedTests
 		{
 		}
 
-		public void CheckGetAvailableMovesSpeed()
+		public void CheckCalculatePossibleMovesSpeed()
 		{
 			var gameState = GameState.CreateNewGameState();
 
@@ -24,7 +24,7 @@ namespace Chess.CheckSpeed.SpeedTests
 		private void RunTestMethod(GameState gameState)
 		{
 			for (var i = 0; i < Times; i++)
-				gameState.GetAvailableMoves();
+				gameState.CalculatePossibleGameMoves();
 		}
 	}
 }

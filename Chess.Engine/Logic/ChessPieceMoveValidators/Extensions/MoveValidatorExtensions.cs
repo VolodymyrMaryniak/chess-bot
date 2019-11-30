@@ -117,7 +117,7 @@ namespace Chess.Engine.Logic.ChessPieceMoveValidators.Extensions
 			move.To.ToArrayIndexes(out var toI, out var toJ);
 
 			do Move(direction, ref i, ref j);
-			while (chessboard.IsCoordinateEmpty(i, j) || i == toI && j == toJ);
+			while (chessboard.IsCoordinateEmpty(i, j));
 
 			return i == toI && j == toJ;
 		}

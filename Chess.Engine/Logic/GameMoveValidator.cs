@@ -1,5 +1,4 @@
 ﻿using Chess.Engine.Enums;
-using Chess.Engine.Enums.Extensions;
 using Chess.Engine.Game;
 using Chess.Engine.Logic.ChessPieceMoveValidators;
 using Chess.Engine.Models;
@@ -47,25 +46,8 @@ namespace Chess.Engine.Logic
 				.ToList();
 
 			availableMoves.AddRange(GetPossibleCastlingMoves(chessboard, turn, gameHistory));
-			
+
 			return availableMoves;
-		}
-
-		public bool IsGameFinished(Chessboard chessboard, GameHistory gameHistory, ChessColor lastTurnBy)
-		{
-			return !GetAvailableMoves(chessboard, lastTurnBy.GetOppositeChessColor(), gameHistory).Any() ||
-			       gameHistory.IsPositionRepeatedThreeTimes;
-		}
-
-		public ChessGameResult GetGameResult(Chessboard chessboard, GameHistory gameHistory, ChessColor lastTurnBy)
-		{
-			if (!IsGameFinished(chessboard, gameHistory, lastTurnBy))
-				throw new InvalidOperationException("The game is not finished yet.");
-
-			if (gameHistory.IsPositionRepeatedThreeTimes)
-				return ChessGameResult.Draw;
-
-			return lastTurnBy == ChessColor.White ? ChessGameResult.WhiteWon : ChessGameResult.BlackWon;
 		}
 
 		private bool IsValid(Chessboard chessboard, GameMove move)

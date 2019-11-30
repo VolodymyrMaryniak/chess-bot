@@ -11,7 +11,7 @@ namespace Chess.CheckSpeed
 
 		public static void Main(string[] args)
 		{
-			CheckGetAvailableMovesSpeed();
+			CheckFirstMoveTime();
 
 			PressKeyToExit();
 		}
@@ -29,7 +29,7 @@ namespace Chess.CheckSpeed
 		{
 			var getAvailableMovesSpeedTest = new AvailableMovesSpeedTest(_logger);
 
-			getAvailableMovesSpeedTest.CheckGetAvailableMovesSpeed();
+			getAvailableMovesSpeedTest.CheckCalculatePossibleMovesSpeed();
 		}
 
 		private static void PressKeyToExit()

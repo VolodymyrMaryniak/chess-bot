@@ -80,10 +80,15 @@ namespace Chess.Engine.Game
 					Chessboard.Set(new ChessPiece {Type = move.CastTo.Value, Owner = Turn}, move.To);
 			}
 
-			if (_gameMoveValidator.IsGameFinished(Chessboard, History, Turn))
+			CalculatePossibleGameMoves(Turn.GetOppositeChessColor());
+
+			if (!PossibleGameMoves.Any() || History.IsPositionRepeatedThreeTimes)
 			{
 				GameStatus = GameStatus.Finished;
-				_gameResult = _gameMoveValidator.GetGameResult(Chessboard, History, Turn);
+				if (History.IsPositionRepeatedThreeTimes)
+					_gameResult = ChessGameResult.Draw;
+				else
+					_gameResult = Turn == ChessColor.White ? ChessGameResult.WhiteWon : ChessGameResult.BlackWon;
 			}
 			else
 			{
@@ -92,18 +97,6 @@ namespace Chess.Engine.Game
 
 				Turn = Turn.GetOppositeChessColor();
 			}
-
-			CalculatePossibleGameMoves();
-		}
-
-		public List<GameMove> GetAvailableMoves()
-		{
-			var possibleMoves = _gameMoveValidator.GetAvailableMoves(Chessboard, Turn, History);
-
-			if (!possibleMoves.Any())
-				throw new Exception("No moves available!");
-
-			return possibleMoves;
 		}
 
 		private void DoCastling(GameMove move)
@@ -128,9 +121,9 @@ namespace Chess.Engine.Game
 			}
 		}
 
-		private void CalculatePossibleGameMoves()
+		internal void CalculatePossibleGameMoves(ChessColor? turn = null)
 		{
-			PossibleGameMoves = _gameMoveValidator.GetAvailableMoves(Chessboard, Turn, History);
+			PossibleGameMoves = _gameMoveValidator.GetAvailableMoves(Chessboard, turn ?? Turn, History);
 		}
 	}
 }

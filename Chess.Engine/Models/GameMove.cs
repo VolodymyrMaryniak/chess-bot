@@ -9,5 +9,10 @@ namespace Chess.Engine.Models
 
 		public Castling? Castling { get; set; }
 		public ChessPieceType? CastTo { get; set; }
+
+		public override string ToString()
+		{
+			return $"[From: {From}, To: {To}]";
+		}
 	}
 }

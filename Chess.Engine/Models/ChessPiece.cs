@@ -6,5 +6,10 @@ namespace Chess.Engine.Models
 	{
 		public ChessColor Owner { get; set; }
 		public ChessPieceType Type { get; set; }
+
+		public override string ToString()
+		{
+			return $"[{Owner} {Type}]";
+		}
 	}
 }

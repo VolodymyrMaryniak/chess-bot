@@ -26,5 +26,10 @@
 			i = Number - 1;
 			j = Letter - 'A';
 		}
+
+		public override string ToString()
+		{
+			return $"{Letter}{Number}";
+		}
 	}
 }
