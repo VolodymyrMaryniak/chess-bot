@@ -1,7 +1,7 @@
 ﻿using Chess.Engine.Enums;
 using Chess.Engine.Game;
 using Chess.Engine.Models;
-using Chess.MinimaxBot;
+using Chess.MinimaxBot.PrimitiveBot;
 using Chess.PlayWithHuman.Extensions;
 using System;
 using System.Collections.Generic;

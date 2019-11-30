@@ -4,11 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Chess.MinimaxBot
+namespace Chess.MinimaxBot.PrimitiveBot
 {
 	public class GameStateRatingCalculator
 	{
-		public double GetGameStateRating(GameState gameState)
+		public int GetGameStateRating(GameState gameState)
 		{
 			if (gameState.GameStatus == GameStatus.Finished)
 				return GetGameRatingFromGameResult(gameState.GetGameResult());
@@ -21,7 +21,7 @@ namespace Chess.MinimaxBot
 			return whiteRating - blackRating;
 		}
 
-		private double GetChessPiecesRating(List<ChessPieceType> chessPieces)
+		private int GetChessPiecesRating(List<ChessPieceType> chessPieces)
 		{
 			var rating = chessPieces.Sum(GetChessPieceRating);
 			if (chessPieces.Count(x => x == ChessPieceType.Bishop) == 2)
@@ -30,7 +30,7 @@ namespace Chess.MinimaxBot
 			return rating;
 		}
 
-		private double GetChessPieceRating(ChessPieceType chessPiece)
+		private int GetChessPieceRating(ChessPieceType chessPiece)
 		{
 			switch (chessPiece)
 			{
@@ -51,14 +51,14 @@ namespace Chess.MinimaxBot
 			}
 		}
 
-		private double GetGameRatingFromGameResult(ChessGameResult gameResult)
+		private int GetGameRatingFromGameResult(ChessGameResult gameResult)
 		{
 			switch (gameResult)
 			{
 				case ChessGameResult.WhiteWon:
-					return 100;
+					return 1000;
 				case ChessGameResult.BlackWon:
-					return -100;
+					return -1000;
 				case ChessGameResult.Draw:
 					return 0;
 				default:

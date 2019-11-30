@@ -2,12 +2,13 @@
 using Chess.Engine.Models;
 using System.Collections.Generic;
 
-namespace Chess.MinimaxBot
+namespace Chess.MinimaxBot.PrimitiveBot
 {
 	public class GameStateRating
 	{
 		public GameState GameState { get; set; }
-		public double Rating { get; set; }
+		public int Rating { get; set; }
 		public Dictionary<GameMove, GameStateRating> PossibleMoves { get; set; }
+		public bool DoNotCalculate { get; set; }
 	}
 }

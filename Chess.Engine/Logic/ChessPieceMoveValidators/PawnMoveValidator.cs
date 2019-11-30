@@ -61,7 +61,8 @@ namespace Chess.Engine.Logic.ChessPieceMoveValidators
 				}
 				case 6 when pawnColor == ChessColor.White:
 				case 1 when pawnColor == ChessColor.Black:
-					pawnForwardMoves.AddMovesWithAllCastToOptions(forwardMove);
+					if (!chessboard.GetChessPieceOrDefault(forwardMove.To).HasValue)
+						pawnForwardMoves.AddMovesWithAllCastToOptions(forwardMove);
 
 					return pawnForwardMoves;
 				default:

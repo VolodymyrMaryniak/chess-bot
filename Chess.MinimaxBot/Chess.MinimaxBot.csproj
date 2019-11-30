@@ -41,9 +41,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GameStateRating.cs" />
-    <Compile Include="GameStateRatingCalculator.cs" />
-    <Compile Include="PrimitiveBot.cs" />
+    <Compile Include="PrimitiveBot\GameStateRating.cs" />
+    <Compile Include="PrimitiveBot\GameStateRatingCalculator.cs" />
+    <Compile Include="PrimitiveBot\PrimitiveBot.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -52,5 +52,6 @@
       <Name>Chess.Engine</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

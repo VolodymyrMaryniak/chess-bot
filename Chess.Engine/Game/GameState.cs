@@ -34,6 +34,7 @@ namespace Chess.Engine.Game
 		{
 			var gameState = new GameState((Chessboard) Chessboard.Clone(), GameStatus, (GameHistory) History.Clone(), Turn);
 			gameState._gameResult = _gameResult;
+			gameState.PossibleGameMoves = PossibleGameMoves.ToList();
 
 			return gameState;
 		}
@@ -124,6 +125,10 @@ namespace Chess.Engine.Game
 		internal void CalculatePossibleGameMoves(ChessColor? turn = null)
 		{
 			PossibleGameMoves = _gameMoveValidator.GetAvailableMoves(Chessboard, turn ?? Turn, History);
+			if (!PossibleGameMoves.Any())
+			{
+				var c = 0;
+			}
 		}
 	}
 }
