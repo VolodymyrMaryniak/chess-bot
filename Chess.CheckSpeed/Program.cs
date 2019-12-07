@@ -34,7 +34,7 @@ namespace Chess.CheckSpeed
 
 			var primitiveBotStopwatch = new Stopwatch();
 			var quiescenceSearchBotStopwatch = new Stopwatch();
-			var gameState = GameState.CreateNewGameState(true);
+			var gameState = GameState.CreateNewGameState();
 
 			try
 			{

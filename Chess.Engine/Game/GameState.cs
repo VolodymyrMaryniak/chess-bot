@@ -10,22 +10,23 @@ namespace Chess.Engine.Game
 {
 	public class GameState : ICloneable
 	{
-		private readonly bool _calculateInterestingMoves;
 		private readonly GameMoveValidator _gameMoveValidator;
 		private ChessGameResult? _gameResult;
+		private Lazy<List<GameMove>> _lazyInterestingGameMoves;
 
-		private GameState(
-			Chessboard chessboard, 
-			GameStatus gameStatus, 
-			GameHistory history, 
-			ChessColor turn,
-			bool calculateInterestingMoves)
+		public Chessboard Chessboard { get; }
+		public GameHistory History { get; }
+		public ChessColor Turn { get; private set; }
+		public GameStatus GameStatus { get; private set; }
+		public List<GameMove> PossibleGameMoves { get; private set; }
+		public List<GameMove> InterestingGameMoves => _lazyInterestingGameMoves.Value;
+
+		private GameState(Chessboard chessboard, GameStatus gameStatus, GameHistory history, ChessColor turn)
 		{
 			Chessboard = chessboard;
 			GameStatus = gameStatus;
 			History = history;
 			Turn = turn;
-			_calculateInterestingMoves = calculateInterestingMoves;
 
 			_gameMoveValidator = new GameMoveValidator();
 
@@ -34,41 +35,24 @@ namespace Chess.Engine.Game
 
 		public static GameState CreateGameStateFromPosition(Chessboard chessboard, bool castlingsPossible, ChessColor turn)
 		{
-			return new GameState(chessboard, GameStatus.Continues, new GameHistory(castlingsPossible), turn, false);
+			return new GameState(chessboard, GameStatus.Continues, new GameHistory(castlingsPossible), turn);
 		}
 
-		public static GameState CreateNewGameState(bool calculateInterestingMoves = false)
+		public static GameState CreateNewGameState()
 		{
-			return new GameState(
-				new Chessboard(), 
-				GameStatus.NotStarted, 
-				new GameHistory(), 
-				ChessColor.White,
-				calculateInterestingMoves);
+			return new GameState(new Chessboard(), GameStatus.NotStarted, new GameHistory(), ChessColor.White);
 		}
 
 		public object Clone()
 		{
-			var gameState = new GameState(
-				(Chessboard) Chessboard.Clone(),
-				GameStatus,
-				(GameHistory) History.Clone(),
-				Turn,
-				_calculateInterestingMoves);
+			var gameState = new GameState((Chessboard) Chessboard.Clone(), GameStatus, (GameHistory) History.Clone(), Turn);
 
 			gameState._gameResult = _gameResult;
 			gameState.PossibleGameMoves = PossibleGameMoves.ToList();
-			gameState.InterestingGameMoves = InterestingGameMoves?.ToList();
+			gameState._lazyInterestingGameMoves = _lazyInterestingGameMoves;
 
 			return gameState;
 		}
-
-		public Chessboard Chessboard { get; }
-		public GameHistory History { get; }
-		public ChessColor Turn { get; private set; }
-		public GameStatus GameStatus { get; private set; }
-		public List<GameMove> PossibleGameMoves { get; private set; }
-		public List<GameMove> InterestingGameMoves { get; private set; }
 
 		public ChessGameResult GetGameResult()
 		{
@@ -156,9 +140,7 @@ namespace Chess.Engine.Game
 		internal void CalculatePossibleGameMoves(ChessColor? turn = null)
 		{
 			PossibleGameMoves = _gameMoveValidator.GetAvailableMoves(Chessboard, turn ?? Turn, History);
-
-			if (_calculateInterestingMoves)
-				InterestingGameMoves = _gameMoveValidator.GetAvailableMoves(Chessboard, turn ?? Turn, History, true);
+			_lazyInterestingGameMoves = new Lazy<List<GameMove>>(() => _gameMoveValidator.GetAvailableMoves(Chessboard, turn ?? Turn, History, true));
 		}
 	}
 }

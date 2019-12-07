@@ -78,7 +78,7 @@ namespace Chess.MinimaxBot.Bot
 
 		private void CalculateChildren(GameStateRating gameStateRating, int deep)
 		{
-			var gameStateRatings = SelectGameStateRatings(gameStateRating, deep);
+			var gameStateRatings = SelectGameStateRatings(gameStateRating, deep).ToList();
 			foreach (var item in gameStateRatings)
 			{
 				CalculateChildren(item, true, out var @continue);
@@ -115,7 +115,7 @@ namespace Chess.MinimaxBot.Bot
 			{
 				parent.Children.Remove(gameStateRating);
 
-				if (parent.AllPossibleMovesCalculated)
+				if (!parent.AllPossibleMovesCalculated)
 					return;
 
 				if (parent.Children.Any())
