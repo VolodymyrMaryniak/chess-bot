@@ -19,10 +19,10 @@ namespace Chess.Engine.Game
 		private Dictionary<int, int> PositionsRepeatedTimes { get; set; }
 		public GameMove? LastMove { get; private set; }
 
-		public GameHistory()
+		public GameHistory(bool castlingsPossible = true)
 		{
 			PositionsRepeatedTimes = new Dictionary<int, int>();
-			BlackShortCastlingPossible = BlackLongCastlingPossible = WhiteShortCastlingPossible = WhiteLongCastlingPossible = true;
+			BlackShortCastlingPossible = BlackLongCastlingPossible = WhiteShortCastlingPossible = WhiteLongCastlingPossible = castlingsPossible;
 		}
 
 		/// <summary>

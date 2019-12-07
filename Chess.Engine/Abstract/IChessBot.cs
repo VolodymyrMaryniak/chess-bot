@@ -8,6 +8,7 @@ namespace Chess.Engine.Abstract
 	{
 		void StartSearch(GameState gameState);
 		GameMove TheBestMove { get; }
-		TimeSpan TimeSpanForSearching { set; }
+		TimeSpan TimeForSearching { set; }
+		int PositionsCalculated { get; }
 	}
 }

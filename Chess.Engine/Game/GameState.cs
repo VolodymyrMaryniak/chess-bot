@@ -10,31 +10,55 @@ namespace Chess.Engine.Game
 {
 	public class GameState : ICloneable
 	{
+		private readonly bool _calculateInterestingMoves;
 		private readonly GameMoveValidator _gameMoveValidator;
 		private ChessGameResult? _gameResult;
 
-		private GameState(Chessboard chessboard, GameStatus gameStatus, GameHistory history, ChessColor turn)
+		private GameState(
+			Chessboard chessboard, 
+			GameStatus gameStatus, 
+			GameHistory history, 
+			ChessColor turn,
+			bool calculateInterestingMoves)
 		{
 			Chessboard = chessboard;
 			GameStatus = gameStatus;
 			History = history;
 			Turn = turn;
+			_calculateInterestingMoves = calculateInterestingMoves;
 
 			_gameMoveValidator = new GameMoveValidator();
 
 			CalculatePossibleGameMoves();
 		}
 
-		public static GameState CreateNewGameState()
+		public static GameState CreateGameStateFromPosition(Chessboard chessboard, bool castlingsPossible, ChessColor turn)
 		{
-			return new GameState(new Chessboard(), GameStatus.NotStarted, new GameHistory(), ChessColor.White);
+			return new GameState(chessboard, GameStatus.Continues, new GameHistory(castlingsPossible), turn, false);
+		}
+
+		public static GameState CreateNewGameState(bool calculateInterestingMoves = false)
+		{
+			return new GameState(
+				new Chessboard(), 
+				GameStatus.NotStarted, 
+				new GameHistory(), 
+				ChessColor.White,
+				calculateInterestingMoves);
 		}
 
 		public object Clone()
 		{
-			var gameState = new GameState((Chessboard) Chessboard.Clone(), GameStatus, (GameHistory) History.Clone(), Turn);
+			var gameState = new GameState(
+				(Chessboard) Chessboard.Clone(),
+				GameStatus,
+				(GameHistory) History.Clone(),
+				Turn,
+				_calculateInterestingMoves);
+
 			gameState._gameResult = _gameResult;
 			gameState.PossibleGameMoves = PossibleGameMoves.ToList();
+			gameState.InterestingGameMoves = InterestingGameMoves?.ToList();
 
 			return gameState;
 		}
@@ -44,6 +68,7 @@ namespace Chess.Engine.Game
 		public ChessColor Turn { get; private set; }
 		public GameStatus GameStatus { get; private set; }
 		public List<GameMove> PossibleGameMoves { get; private set; }
+		public List<GameMove> InterestingGameMoves { get; private set; }
 
 		public ChessGameResult GetGameResult()
 		{
@@ -89,7 +114,13 @@ namespace Chess.Engine.Game
 				if (History.IsPositionRepeatedThreeTimes)
 					_gameResult = ChessGameResult.Draw;
 				else
-					_gameResult = Turn == ChessColor.White ? ChessGameResult.WhiteWon : ChessGameResult.BlackWon;
+				{
+					if (_gameMoveValidator.IsCoordinateInDanger(Chessboard, Turn.GetOppositeChessColor(),
+						Chessboard.GetCoordinate(new ChessPiece {Owner = Turn.GetOppositeChessColor(), Type = ChessPieceType.King})))
+						_gameResult = Turn == ChessColor.White ? ChessGameResult.WhiteWon : ChessGameResult.BlackWon;
+					else
+						_gameResult = ChessGameResult.Draw;
+				}
 			}
 			else
 			{
@@ -125,10 +156,9 @@ namespace Chess.Engine.Game
 		internal void CalculatePossibleGameMoves(ChessColor? turn = null)
 		{
 			PossibleGameMoves = _gameMoveValidator.GetAvailableMoves(Chessboard, turn ?? Turn, History);
-			if (!PossibleGameMoves.Any())
-			{
-				var c = 0;
-			}
+
+			if (_calculateInterestingMoves)
+				InterestingGameMoves = _gameMoveValidator.GetAvailableMoves(Chessboard, turn ?? Turn, History, true);
 		}
 	}
 }

@@ -22,20 +22,18 @@ namespace Chess.MinimaxBot.PrimitiveBot
 			_random = new Random();
 		}
 
+		public int PositionsCalculated { get; private set; }
 		public GameMove TheBestMove { get; private set; }
-		public TimeSpan TimeSpanForSearching { get; set; }
+		public TimeSpan TimeForSearching { get; set; }
 
 		public void StartSearch(GameState gameState)
 		{
+			PositionsCalculated = 0;
 			_stopwatch.Start();
 
-			var gameStateRating = new GameStateRating
-			{
-				GameState = gameState,
-				Rating = _gameStateRatingCalculator.GetGameStateRating(gameState)
-			};
+			var gameStateRating = new GameStateRating {GameState = gameState};
 
-			CalculateChildGameStateRatings(gameStateRating);
+			CalculateChildren(gameStateRating);
 			var deep = 0;
 			while (ContinueSearch(gameStateRating, deep)) deep++;
 
@@ -50,72 +48,119 @@ namespace Chess.MinimaxBot.PrimitiveBot
 			if (!gameStateRatingsToCalculate.Any())
 				return false;
 
+			var startAgain = false;
 			foreach (var item in gameStateRatingsToCalculate)
 			{
-				if (_stopwatch.Elapsed > TimeSpanForSearching)
+				if (_stopwatch.Elapsed > TimeForSearching)
 					return false;
 
-				CalculateChildGameStateRatings(item);
+				var oldRating = item.Rating;
+
+				CalculateChildren(item);
+
+				if (oldRating != item.Rating)
+				{
+					var changed = RecalculateParentRating(item);
+					if (changed)
+					{
+						startAgain = true;
+						break;
+					}
+				}
 			}
+
+			if (startAgain)
+				return ContinueSearch(gameStateRating, deep);
 
 			return true;
 		}
 
-		private List<GameStateRating> SelectGameStateRatings(List<GameStateRating> gameStateRatings, int deep)
+		private bool RecalculateParentRating(GameStateRating gameStateRating)
 		{
-			var gameStateRatingsToCalculate = gameStateRatings.Where(x => !x.DoNotCalculate);
+			var parent = gameStateRating.Parent;
+			if (parent == null)
+				return false;
 
-			if (deep == 0)
-			{
-				return gameStateRatingsToCalculate
-					.SelectMany(x => x.PossibleMoves.Select(m => m.Value))
-					.ToList();
-			}
-			else
-			{
-				var gameStateRatingsToSelect = gameStateRatingsToCalculate
-					.SelectMany(x => x.PossibleMoves.Select(m => m.Value))
-					.ToList();
+			var oldRating = parent.Rating;
+			parent.Rating = GetTheBestMoveRating(parent);
 
-				return SelectGameStateRatings(gameStateRatingsToSelect, deep - 1);
+			if (oldRating == parent.Rating)
+				return false;
+
+			RecalculateParentRating(parent);
+
+			if (parent.Rating == 1000 || parent.Rating == -1000)
+			{
+				parent.Children = parent.Parent == null
+					? parent.Children.Where(x => x.Rating == parent.Rating).ToList()
+					: null;
+
+				return true;
 			}
+
+			// ???
+			return false;
 		}
 
-		private void CalculateChildGameStateRatings(GameStateRating gameStateRating)
+		private IEnumerable<GameStateRating> SelectGameStateRatings(IEnumerable<GameStateRating> gameStateRatings, int deep)
 		{
-			gameStateRating.PossibleMoves = gameStateRating.GameState.PossibleGameMoves
-				.Select(move =>
-				{
-					var gameStateClone = (GameState) gameStateRating.GameState.Clone();
-					gameStateClone.Move(move);
+			var gameStateRatingsToCalculate = gameStateRatings.Where(x => x.Children != null);
 
-					return new
-					{
-						Move = move,
-						GameState = gameStateClone
-					};
-				}).ToDictionary(x => x.Move, x => new GameStateRating
-				{
-					GameState = x.GameState,
-					Rating = _gameStateRatingCalculator.GetGameStateRating(x.GameState)
-				});
+			var gameStateRatingsToSelect = gameStateRatingsToCalculate.SelectMany(x => x.Children);
+			return deep == 0
+				? gameStateRatingsToSelect
+				: SelectGameStateRatings(gameStateRatingsToSelect, deep - 1);
+		}
 
-			if (gameStateRating.PossibleMoves.Count >= 2)
+		protected virtual void CalculateChildren(GameStateRating gameStateRating)
+		{
+			if (gameStateRating.GameState.GameStatus == GameStatus.Finished)
 				return;
 
-			foreach (var item in gameStateRating.PossibleMoves.Values)
+			PositionsCalculated++;
+			gameStateRating.Children = new List<GameStateRating>(gameStateRating.GameState.PossibleGameMoves.Count);
+
+			int? maxRating = null;
+			GameStateRating moveRating = null;
+			foreach (var move in gameStateRating.GameState.PossibleGameMoves)
 			{
-				item.DoNotCalculate = true;
+				var gameStateClone = (GameState)gameStateRating.GameState.Clone();
+				gameStateClone.Move(move);
+				var rating = _gameStateRatingCalculator.GetGameStateRating(gameStateClone);
+
+				moveRating = new GameStateRating
+				{
+					Parent = gameStateRating,
+					Move = move,
+					GameState = gameStateClone,
+					Rating = rating
+				};
+
+				gameStateRating.Children.Add(moveRating);
+
+				if (gameStateClone.GameStatus == GameStatus.Finished && (rating == -1000 || rating == 1000))
+				{
+					maxRating = rating;
+					break;
+				}
+			}
+
+			if (maxRating.HasValue)
+			{
+				gameStateRating.Children = gameStateRating.Parent == null
+					? new List<GameStateRating> {moveRating}
+					: null;
+				gameStateRating.Rating = maxRating.Value;
 			}
 		}
 
 		private GameMove CalculateTheBestMove(GameStateRating gameStateRating)
 		{
-			var availableMovesRatings = gameStateRating.PossibleMoves
-				.Select(move => new
+			var availableMovesRatings = gameStateRating.Children
+				.Select(x => new
 				{
-					Rating = GetTheBestMoveRating(move.Value),
-					Move = move.Key
+					Rating = GetTheBestMoveRating(x),
+					x.Move
 				}).ToList();
 
 			var rating = gameStateRating.GameState.Turn == ChessColor.White
@@ -128,12 +173,12 @@ namespace Chess.MinimaxBot.PrimitiveBot
 
 		private int GetTheBestMoveRating(GameStateRating gameStateRating)
 		{
-			if (gameStateRating.PossibleMoves == null || !gameStateRating.PossibleMoves.Any())
+			if (gameStateRating.Children == null || !gameStateRating.Children.Any())
 				return gameStateRating.Rating;
 
 			return gameStateRating.GameState.Turn == ChessColor.White
-				? gameStateRating.PossibleMoves.Select(x => GetTheBestMoveRating(x.Value)).Max()
-				: gameStateRating.PossibleMoves.Select(x => GetTheBestMoveRating(x.Value)).Min();
+				? gameStateRating.Children.Select(GetTheBestMoveRating).Max()
+				: gameStateRating.Children.Select(GetTheBestMoveRating).Min();
 		}
 	}
 }

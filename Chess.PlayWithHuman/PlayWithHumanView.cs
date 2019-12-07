@@ -1,6 +1,8 @@
-﻿using Chess.Engine.Enums;
+﻿using Chess.Engine.Abstract;
+using Chess.Engine.Enums;
 using Chess.Engine.Game;
 using Chess.Engine.Models;
+using Chess.MinimaxBot.Bot;
 using Chess.MinimaxBot.PrimitiveBot;
 using Chess.PlayWithHuman.Extensions;
 using System;
@@ -17,20 +19,21 @@ namespace Chess.PlayWithHuman
 		private readonly GameState _gameState;
 		private readonly List<ChessboardFieldLabel> _chessboardFieldLabels;
 
-		private readonly PrimitiveBot _primitiveBot;
+		private readonly IChessBot _bot;
 		private readonly ChessColor _humanPlayer;
-
+		
 		private Coordinate? _fromCoordinate;
 
 		public PlayWithHumanView()
 		{
-			_gameState = GameState.CreateNewGameState();
+			_gameState = GameState.CreateNewGameState(true);
 			InitializeComponent();
 
 			_chessboardFieldLabels = new List<ChessboardFieldLabel>();
 			SetLabels();
-			_primitiveBot = new PrimitiveBot {TimeSpanForSearching = TimeSpan.FromSeconds(trackBar.Value)};
+			_bot = new ChessBot(new GameStateRatingCalculator(), 0, 5) {TimeForSearching = TimeSpan.FromSeconds(trackBar.Value)};
 			_humanPlayer = ChessColor.White;
+			timer1.Start();
 		}
 
 		private async void LabelOnClick(object sender, EventArgs args)
@@ -73,6 +76,9 @@ namespace Chess.PlayWithHuman
 
 		private async Task ProcessMoveAsync(GameMove move)
 		{
+			if (_gameState.GameStatus == GameStatus.Finished)
+				return;
+
 			_gameState.Move(move);
 			SetChessboardLabelsStyles();
 
@@ -80,8 +86,11 @@ namespace Chess.PlayWithHuman
 			{
 				await Task.Run(() =>
 				{
-					_primitiveBot.StartSearch(_gameState);
-					return ProcessMoveAsync(_primitiveBot.TheBestMove);
+					if (_gameState.GameStatus == GameStatus.Finished)
+						return ProcessMoveAsync(_bot.TheBestMove);
+
+					_bot.StartSearch(_gameState);
+					return ProcessMoveAsync(_bot.TheBestMove);
 				});
 			}
 		}
@@ -145,7 +154,13 @@ namespace Chess.PlayWithHuman
 
 		private void TrackBar_Scroll(object sender, EventArgs e)
 		{
-			_primitiveBot.TimeSpanForSearching = TimeSpan.FromSeconds(trackBar.Value);
+			_bot.TimeForSearching = TimeSpan.FromSeconds(trackBar.Value);
+		}
+
+		private void Timer1_Tick(object sender, EventArgs e)
+		{
+			// ReSharper disable once LocalizableElement
+			label1.Text = $"Count of calculated positions: {_bot.PositionsCalculated}";
 		}
 	}
 }

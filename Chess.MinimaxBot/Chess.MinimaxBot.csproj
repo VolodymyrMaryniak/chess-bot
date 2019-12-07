@@ -41,6 +41,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bot\ChessBot.cs" />
+    <Compile Include="Extensions\GameStateRatingExtensions.cs" />
     <Compile Include="PrimitiveBot\GameStateRating.cs" />
     <Compile Include="PrimitiveBot\GameStateRatingCalculator.cs" />
     <Compile Include="PrimitiveBot\PrimitiveBot.cs" />

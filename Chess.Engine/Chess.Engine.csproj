@@ -51,6 +51,7 @@
     <Compile Include="Enums\GameStatus.cs" />
     <Compile Include="Extensions\DictionaryExtensions.cs" />
     <Compile Include="Game\Chessboard.cs" />
+    <Compile Include="Game\Extensions\ChessboardExtensions.cs" />
     <Compile Include="Game\Game.cs" />
     <Compile Include="Game\GameHistory.cs" />
     <Compile Include="Game\GameState.cs" />
