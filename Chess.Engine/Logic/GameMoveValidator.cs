@@ -61,35 +61,39 @@ namespace Chess.Engine.Logic
 			if (!chessPiece.HasValue)
 				return false;
 
-			var chessBoardCopy = (Chessboard)chessboard.Clone();
+			var victim = chessboard.Move(move);
 
-			chessBoardCopy.Move(move);
+			var kingCoordinate = chessboard.GetCoordinate(new ChessPiece { Owner = chessPiece.Value.Owner, Type = ChessPieceType.King });
+			var isKingInDanger = IsCoordinateInDanger(chessboard, chessPiece.Value.Owner, kingCoordinate);
 
-			var kingCoordinate = chessBoardCopy.GetCoordinate(new ChessPiece { Owner = chessPiece.Value.Owner, Type = ChessPieceType.King });
-			var isKingInDanger = IsCoordinateInDanger(chessBoardCopy, chessPiece.Value.Owner, kingCoordinate);
+			chessboard.UnMove(move, victim);
 
 			return !isKingInDanger;
 		}
 
 		private bool IsInteresting(Chessboard chessboard, GameMove move)
 		{
+			var isInteresting = IsInterestingInternal(chessboard, move, out var victim);
+			chessboard.UnMove(move, victim);
+			return isInteresting;
+		}
+
+		private bool IsInterestingInternal(Chessboard chessboard, GameMove move, out ChessPiece? victim)
+		{
 			var chessPiecesBefore = chessboard.ChessPieces;
 
-			var chessPiece = chessboard.GetChessPieceOrDefault(move.From);
-			if (!chessPiece.HasValue)
-				return false;
+			var chessPiece = chessboard.GetChessPiece(move.From);
 
-			var chessBoardCopy = (Chessboard)chessboard.Clone();
+			victim = chessboard.Move(move);
 
-			chessBoardCopy.Move(move);
-
-			var kingCoordinate = chessBoardCopy.GetCoordinate(new ChessPiece { Owner = chessPiece.Value.Owner, Type = ChessPieceType.King });
-			var isKingInDanger = IsCoordinateInDanger(chessBoardCopy, chessPiece.Value.Owner, kingCoordinate);
+			var kingCoordinate = chessboard.GetCoordinate(new ChessPiece
+				{Owner = chessPiece.Owner, Type = ChessPieceType.King});
+			var isKingInDanger = IsCoordinateInDanger(chessboard, chessPiece.Owner, kingCoordinate);
 
 			if (isKingInDanger)
 				return false;
 
-			var chessPiecesAfter = chessBoardCopy.ChessPieces;
+			var chessPiecesAfter = chessboard.ChessPieces;
 			if (chessPiecesAfter.Count != chessPiecesBefore.Count)
 				return true;
 
@@ -97,11 +101,13 @@ namespace Chess.Engine.Logic
 			    chessPiecesBefore.Count(x => x.Type == ChessPieceType.Bishop))
 				return true;
 
-			var opponentColor = chessPiece.Value.Owner.GetOppositeChessColor();
-			return IsCoordinateInDanger(
-				chessBoardCopy,
+			var opponentColor = chessPiece.Owner.GetOppositeChessColor();
+			var isCoordinateInDanger = IsCoordinateInDanger(
+				chessboard,
 				opponentColor,
-				chessBoardCopy.GetCoordinate(new ChessPiece {Owner = opponentColor, Type = ChessPieceType.King}));
+				chessboard.GetCoordinate(new ChessPiece {Owner = opponentColor, Type = ChessPieceType.King}));
+
+			return isCoordinateInDanger;
 		}
 
 		private IEnumerable<GameMove> GetSoftValidMoves(Chessboard chessboard, ChessPieceCoordinate chessPieceCoordinate,

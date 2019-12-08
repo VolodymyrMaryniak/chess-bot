@@ -58,12 +58,23 @@ namespace Chess.Engine.Game
 			return null;
 		}
 
-		public void Move(GameMove move)
+		public ChessPiece? Move(GameMove move)
 		{
 			var chessPiece = GetChessPiece(move.From);
+			var victim = GetChessPieceOrDefault(move.To);
 
 			Set(null, move.From);
 			Set(chessPiece, move.To);
+
+			return victim;
+		}
+
+		public void UnMove(GameMove move, ChessPiece? victim)
+		{
+			var chessPiece = GetChessPiece(move.To);
+
+			Set(chessPiece, move.From);
+			Set(victim, move.To);
 		}
 
 		public object Clone()

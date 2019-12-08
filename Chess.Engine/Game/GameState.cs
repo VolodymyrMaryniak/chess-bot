@@ -85,6 +85,7 @@ namespace Chess.Engine.Game
 					if (!victim.HasValue)
 						Chessboard.Set(null, new Coordinate(move.To.Letter, chessPiece.Owner == ChessColor.White ? 5 : 4));
 				}
+
 				Chessboard.Move(move);
 				if (move.CastTo.HasValue)
 					Chessboard.Set(new ChessPiece {Type = move.CastTo.Value, Owner = Turn}, move.To);
