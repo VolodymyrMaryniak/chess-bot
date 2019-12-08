@@ -31,7 +31,7 @@ namespace Chess.PlayWithHuman
 
 			_chessboardFieldLabels = new List<ChessboardFieldLabel>();
 			SetLabels();
-			_bot = new ChessBot(new GameStateRatingCalculator(), 0, 5) {TimeForSearching = TimeSpan.FromSeconds(trackBar.Value)};
+			_bot = new ChessBot(new GameStateRatingCalculator(), 1, 3, 1) {TimeForSearching = TimeSpan.FromSeconds(trackBar.Value)};
 			_humanPlayer = ChessColor.White;
 			timer1.Start();
 		}

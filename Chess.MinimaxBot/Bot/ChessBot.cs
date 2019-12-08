@@ -17,21 +17,23 @@ namespace Chess.MinimaxBot.Bot
 		private readonly Stopwatch _stopwatch;
 		private readonly Random _random;
 
-		public ChessBot(GameStateRatingCalculator gameStateRatingCalculator, int fullCalculationLevel, int interestingCalculationLevel)
-		{
-			_gameStateRatingCalculator = gameStateRatingCalculator;
-			FullCalculationLevel = fullCalculationLevel;
-			InterestingCalculationLevel = interestingCalculationLevel;
-			_stopwatch = new Stopwatch();
-			_random = new Random();
-		}
-
 		public int PositionsCalculated { get; private set; }
 		public GameMove TheBestMove { get; private set; }
 		public TimeSpan TimeForSearching { get; set; }
 
 		public int FullCalculationLevel { get; }
 		public int InterestingCalculationLevel { get; }
+		public int AlphaBetaDiff { get; }
+
+		public ChessBot(GameStateRatingCalculator gameStateRatingCalculator, int fullCalculationLevel, int interestingCalculationLevel, int alphaBetaDiff)
+		{
+			_gameStateRatingCalculator = gameStateRatingCalculator;
+			FullCalculationLevel = fullCalculationLevel;
+			InterestingCalculationLevel = interestingCalculationLevel;
+			AlphaBetaDiff = alphaBetaDiff;
+			_stopwatch = new Stopwatch();
+			_random = new Random();
+		}
 
 		public void StartSearch(GameState gameState)
 		{
@@ -57,21 +59,34 @@ namespace Chess.MinimaxBot.Bot
 
 		private void Search(GameStateRating root)
 		{
+			void CalculateInteresting(int level)
+			{
+				if (FullCalculationLevel % 2 != level % 2)
+					CalculateInterestingChildren(root, level);
+				else
+					CalculateChildren(root, level);
+			}
+
 			for (var level = 1; level <= FullCalculationLevel; level++)
 				CalculateChildren(root, level);
 
 			for (var level = FullCalculationLevel + 1; level <= FullCalculationLevel + InterestingCalculationLevel; level++)
-				CalculateInterestingChildren(root, level);
+				CalculateInteresting(level);
+
+			AlphaBeta(root, 1);
 
 			var fullCalculationLevel = FullCalculationLevel;
 			var interestingCalculationLevel = FullCalculationLevel + InterestingCalculationLevel;
+			var alphaBetaLevel = 1;
 			while (true)
 			{
 				fullCalculationLevel++;
 				interestingCalculationLevel++;
+				alphaBetaLevel++;
 
 				CalculateChildren(root, fullCalculationLevel);
-				CalculateInterestingChildren(root, interestingCalculationLevel);
+				CalculateInteresting(interestingCalculationLevel);
+				AlphaBeta(root, alphaBetaLevel);
 			}
 			// ReSharper disable once FunctionNeverReturns
 		}
@@ -102,11 +117,38 @@ namespace Chess.MinimaxBot.Bot
 			}
 		}
 
+		private void AlphaBeta(GameStateRating root, int deep)
+		{
+			var gameStateRatings = SelectGameStateRatings(root, deep).ToList();
+			CalculateRatings(gameStateRatings);
+
+			var parents = gameStateRatings.Select(x => x.Parent).Distinct();
+			foreach (var parent in parents)
+				CutOffBadChildren(parent);
+		}
+
+		private void CutOffBadChildren(GameStateRating parent)
+		{
+			if (parent.Children == null || parent.Children.Count < 2)
+				return;
+
+			var childTurn = parent.GameState.Turn;
+			if (childTurn == ChessColor.White)
+			{
+				var maxRating = parent.Children.Max(x => x.Rating);
+				parent.Children.RemoveAll(x => x.Rating < maxRating - AlphaBetaDiff);
+			}
+			else
+			{
+				var minRating = parent.Children.Min(x => x.Rating);
+				parent.Children.RemoveAll(x => x.Rating > minRating + AlphaBetaDiff);
+			}
+		}
+
 		private void GoUp(GameStateRating gameStateRating)
 		{
 			var parent = gameStateRating.Parent;
-			if (parent == null)
-				throw new TreeIsOpenedException();
+
 			var wonRating = _gameStateRatingCalculator.WonRating;
 			var rating = gameStateRating.Rating;
 
@@ -147,9 +189,9 @@ namespace Chess.MinimaxBot.Bot
 			CheckTime();
 		}
 
-		private IEnumerable<GameStateRating> SelectGameStateRatings(GameStateRating gameStateRating, int deep)
+		private IEnumerable<GameStateRating> SelectGameStateRatings(GameStateRating root, int deep)
 		{
-			return SelectGameStateRatings(new List<GameStateRating> {gameStateRating}, deep);
+			return SelectGameStateRatings(new List<GameStateRating> {root}, deep);
 		}
 
 		private IEnumerable<GameStateRating> SelectGameStateRatings(IEnumerable<GameStateRating> gameStateRatings, int deep)
@@ -179,6 +221,17 @@ namespace Chess.MinimaxBot.Bot
 
 			var bestMoves = availableMovesRatings.Where(x => x.Rating == bestRating).Select(x => x.Move).ToList();
 			return bestMoves[_random.Next(bestMoves.Count)];
+		}
+
+		private void CalculateRatings(IEnumerable<GameStateRating> gameStateRatings)
+		{
+			foreach (var gameStateRating in gameStateRatings)
+				CalculateRating(gameStateRating);
+		}
+
+		private void CalculateRating(GameStateRating gameStateRating)
+		{
+			gameStateRating.Rating = gameStateRating.GetTheBestMoveRating();
 		}
 
 		private void CheckTime()
